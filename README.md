@@ -1,4 +1,6 @@
-<img src="social-preview.png" width="1200" height="630" alt="网感训练板">
+<p align="center">
+  <img src="social-preview.png" width="400" alt="网感训练板">
+</p>
 
 # 网感训练板
 
