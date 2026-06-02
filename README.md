@@ -92,7 +92,7 @@
 
 ## 👤 开发者
 
-由 **ChenNan** 设计开发
+由 **LillltaChen** 设计开发
 
 - GitHub: [@LillltaChen](https://github.com/LillltaChen)
 - 在线使用: [lillltachen.github.io/net-sense-trainer](https://lillltachen.github.io/net-sense-trainer/)
