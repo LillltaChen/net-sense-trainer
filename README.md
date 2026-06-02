@@ -6,10 +6,12 @@
   <img src="social-preview.png" width="200" alt="网感训练板">
 </p>
 
-![Platforms](https://img.shields.io/badge/Platforms-22_中国平台-6366f1)
-![HTML](https://img.shields.io/badge/HTML-单文件零构建-orange)
-![Storage](https://img.shields.io/badge/Storage-localhost-22c55e)
-![License](https://img.shields.io/badge/License-MIT-blue)
+<p align="center">
+  <img src="https://img.shields.io/badge/Platforms-22_中国平台-6366f1" alt="Platforms">
+  <img src="https://img.shields.io/badge/HTML-单文件零构建-orange" alt="HTML">
+  <img src="https://img.shields.io/badge/Storage-localhost-22c55e" alt="Storage">
+  <img src="https://img.shields.io/badge/License-MIT-blue" alt="License">
+</p>
 
 ---
 
