@@ -3,13 +3,13 @@
 一个单文件 Web 应用，帮助内容创作者系统化训练对爆款内容的敏感度——拆解钩子、识别情绪触发点、预判传播方向。
 
 <p align="center">
-  <img src="./images/screenshot-add.png" width="30%" alt="添加内容" />
-  <img src="./images/screenshot-library.png" width="30%" alt="案例库" />
-  <img src="./images/screenshot-train-a.png" width="30%" alt="训练中心" />
+  <img src="./images/case-01.png" width="30%" alt="案例图解1" />
+  <img src="./images/case-02.png" width="30%" alt="案例图解2" />
+  <img src="./images/case-03.png" width="30%" alt="案例图解3" />
 </p>
 <p align="center">
-  <img src="./images/screenshot-train-b.png" width="30%" alt="维度聚焦" />
-  <img src="./images/screenshot-stats.png" width="30%" alt="统计面板" />
+  <img src="./images/case-04.png" width="30%" alt="案例图解4" />
+  <img src="./images/case-05.png" width="30%" alt="案例图解5" />
 </p>
 
 ## 核心功能
