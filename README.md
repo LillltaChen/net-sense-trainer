@@ -1,4 +1,4 @@
-# ✨ 网感训练板 / Internet-Vibe Trainer
+ # ✨ 网感训练板 / net-sense-trainer
 
 > 把网感从玄学变成可训练的能力
 
