@@ -21,6 +21,16 @@
 
 **核心逻辑：拆解 → 预测 → 验证 → 校准。把"感觉"变成可追踪的数据。**
 
+<p align="center">
+  <img src="./images/case-01.png" width="30%" alt="案例图解1" />
+  <img src="./images/case-02.png" width="30%" alt="案例图解2" />
+  <img src="./images/case-03.png" width="30%" alt="案例图解3" />
+</p>
+<p align="center">
+  <img src="./images/case-04.png" width="30%" alt="案例图解4" />
+  <img src="./images/case-05.png" width="30%" alt="案例图解5" />
+</p>
+
 ---
 
 ## ✨ 功能特性
