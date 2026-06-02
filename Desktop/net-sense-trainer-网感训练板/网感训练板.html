@@ -1,0 +1,3678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网感训练板</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* === 设计系统 === */
+  :root {
+    --bg-page: #06060e;
+    --bg-card: #161826;
+    --bg-card-hover: #1e2032;
+    --bg-inner: #0e1018;
+    --bg-input: #11131c;
+
+    --brand: #6366f1;
+    --brand-dim: rgba(99,102,241,0.12);
+    --brand-glow: rgba(99,102,241,0.25);
+    --cyan: #06b6d4;
+    --cyan-dim: rgba(6,182,212,0.12);
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --green: #22c55e;
+    --accent-orange: #e0742a;
+    --accent-cyan: #0ea5c7;
+    --accent-green: #16a34a;
+
+    --text-primary: #ffffff;
+    --text-body: #b8b8cc;
+    --text-muted: #6e6e82;
+    --text-placeholder: #4a4a5c;
+
+    --border-subtle: rgba(255,255,255,0.06);
+    --border-default: rgba(255,255,255,0.10);
+    --border-active: rgba(99,102,241,0.45);
+    --border-glow: rgba(99,102,241,0.22);
+
+    --radius-sm: 8px;
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+
+    --shadow-card: 0 4px 16px rgba(0,0,0,0.55), 0 0 0 1px var(--border-subtle), inset 0 1px 0 rgba(255,255,255,0.04);
+    --shadow-card-hover: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px var(--border-default), inset 0 1px 0 rgba(255,255,255,0.06);
+    --shadow-glow: 0 0 24px var(--brand-glow);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    background: var(--bg-page);
+    color: var(--text-body);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding-bottom: 60px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-placeholder); }
+
+  /* === 页面背景光晕 === */
+  .page-glow {
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 500px;
+    background: radial-gradient(ellipse at center, rgba(99,102,241,0.10) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .page-glow-cyan {
+    position: fixed;
+    top: 300px;
+    right: -100px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(ellipse at center, rgba(6,182,212,0.07) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+
+  /* === 头部区域 === */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid;
+    border-image: linear-gradient(90deg, transparent, var(--border-default), transparent) 1;
+    animation: fadeInUp 0.5s ease both;
+    position: relative;
+    z-index: 20;
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-icon {
+    width: 55px;
+    height: 55px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .logo-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+  .logo-scan-line {
+    animation: scanSweep 3s ease-in-out infinite;
+  }
+  @keyframes scanSweep {
+    0%, 100% { transform: rotate(-45deg); }
+    50% { transform: rotate(45deg); }
+  }
+
+  .logo-text h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .logo-text .subtitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .logo-text .subtitle span {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .logo-text .subtitle .divider {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--text-placeholder);
+  }
+  .badge-local {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--green);
+    background: rgba(34,197,94,0.08);
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(34,197,94,0.15);
+  }
+  .badge-local .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s ease infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 12px;
+    background: var(--bg-inner);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+  }
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+  }
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+  }
+  .status-label {
+    color: var(--text-muted);
+  }
+  .status-num {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .status-num.status-green {
+    color: var(--green);
+  }
+  .status-divider {
+    width: 1px;
+    height: 12px;
+    background: var(--border-default);
+  }
+
+  /* === 快捷操作栏 === */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 12px;
+    flex-wrap: wrap;
+    animation: fadeInUp 0.5s ease 0.1s both;
+  }
+  .toolbar-left {
+    display: flex;
+    gap: 6px;
+  }
+  .toolbar-right {
+    display: flex;
+    gap: 6px;
+  }
+
+  /* === 卡片系统 === */
+  .card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-card);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeInUp 0.5s ease both;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent);
+  }
+  .card:hover {
+    background: var(--bg-card-hover);
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-1px);
+  }
+  /* 顶部渐变边框 */
+  .card-glow-border::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 20%;
+    right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-glow), transparent);
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    letter-spacing: 0.02em;
+  }
+  .card-title .icon {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--brand-dim);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+  }
+
+  /* === 表单系统 === */
+  .form-row {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .form-col {
+    flex: 1;
+    min-width: 160px;
+  }
+  .form-col.full {
+    flex: 0 0 100%;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-body);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .form-label .required { color: var(--red); }
+  .form-label .hint {
+    color: var(--brand);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .input {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    color: var(--text-body);
+    font-size: 13px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-dim), inset 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .input::placeholder { color: var(--text-muted); }
+  select.input {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%236e6e82' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+  textarea.input {
+    resize: vertical;
+    min-height: 64px;
+    line-height: 1.6;
+  }
+
+  .link-row { display: flex; gap: 8px; align-items: center; }
+  .link-row .input { flex: 1; }
+
+  /* === 按钮系统 === */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .btn:hover::after { opacity: 1; }
+
+  .btn-primary {
+    background: var(--brand-dim);
+    color: #a5a7f5;
+    border: 1px solid rgba(99,102,241,0.2);
+  }
+  .btn-primary:hover {
+    background: rgba(99,102,241,0.2);
+    color: #c4c5f8;
+    border-color: rgba(99,102,241,0.35);
+    box-shadow: 0 0 12px var(--brand-glow);
+    transform: translateY(-1px);
+  }
+  .btn-primary:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  .btn-accent {
+    background: var(--brand);
+    color: #fff;
+    border: 1px solid transparent;
+    box-shadow: 0 1px 3px rgba(99,102,241,0.3);
+  }
+  .btn-accent:hover {
+    background: #7c7ff5;
+    box-shadow: 0 4px 16px rgba(99,102,241,0.4);
+    transform: translateY(-1px);
+  }
+  .btn-accent:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(99,102,241,0.3);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border-default);
+  }
+  .btn-ghost:hover {
+    color: var(--text-body);
+    border-color: var(--border-active);
+    background: var(--bg-card-hover);
+    transform: translateY(-1px);
+  }
+  .btn-ghost:active {
+    transform: translateY(0);
+  }
+
+  .btn-sm { padding: 6px 10px; font-size: 11px; }
+  .btn-xs { padding: 4px 8px; font-size: 10px; }
+  .btn-text { background: none; border: none; color: var(--text-muted); font-size: 12px; padding: 4px 8px; }
+  .btn-text:hover { color: var(--text-body); }
+
+  /* === 模式切换器 === */
+  .mode-switcher {
+    display: flex;
+    background: var(--bg-inner);
+    border-radius: var(--radius-lg);
+    padding: 4px;
+    gap: 4px;
+  }
+  .train-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .mode-switcher .btn {
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    flex: 1;
+    min-width: 130px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .mode-switcher .btn.btn-accent {
+    box-shadow: none;
+  }
+  .mode-switcher .btn.btn-ghost {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+  }
+  .mode-switcher .btn.btn-ghost:hover {
+    background: rgba(255,255,255,0.04);
+    color: var(--text-body);
+  }
+
+  /* === 工具栏 === */
+  .toolbar {
+    background: var(--bg-inner);
+    border-radius: var(--radius-lg);
+    padding: 12px 16px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .toolbar .input {
+    background-color: var(--bg-input);
+  }
+  .toolbar select.input {
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%236e6e82' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+  .toolbar-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border-default);
+    margin: 0 4px;
+  }
+  .btn-green {
+    background: rgba(34,197,94,0.12);
+    color: #4ade80;
+    border: 1px solid rgba(34,197,94,0.2);
+  }
+  .btn-green:hover { background: rgba(34,197,94,0.2); border-color: rgba(34,197,94,0.35); transform: translateY(-1px); }
+  .btn-green:active { transform: translateY(0); }
+  .btn-red {
+    background: rgba(239,68,68,0.12);
+    color: #fca5a5;
+    border: 1px solid rgba(239,68,68,0.2);
+  }
+  .btn-red:hover { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.35); transform: translateY(-1px); }
+  .btn-red:active { transform: translateY(0); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* === 分隔线 === */
+  .section-divider {
+    height: 1px;
+    margin: 24px 0;
+    background: linear-gradient(90deg, transparent, var(--border-default), transparent);
+    position: relative;
+  }
+  .section-divider::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border-default);
+  }
+
+  .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 600px) { .analysis-grid { grid-template-columns: 1fr; } }
+
+  /* === Tab 导航（底部指示器风格） === */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    animation: fadeInUp 0.5s ease 0.15s both;
+  }
+  .tab-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    white-space: nowrap;
+  }
+  .tab-btn .tab-icon {
+    font-size: 16px;
+    transition: transform 0.3s;
+  }
+  .tab-btn:hover { color: var(--text-body); }
+  .tab-btn:hover .tab-icon { transform: scale(1.1); }
+  .tab-btn.active {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  .tab-btn.active .tab-icon { transform: scale(1.15); }
+
+  .tab-indicator {
+    position: absolute;
+    bottom: 0;
+    height: 2px;
+    background: var(--brand);
+    border-radius: 2px 2px 0 0;
+    box-shadow: 0 -2px 8px var(--brand-glow);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .range-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+  }
+  @media (max-width: 520px) { .range-grid { grid-template-columns: repeat(3, 1fr); } }
+  .range-btn {
+    padding: 14px 4px; border: 2px solid var(--border-default); border-radius: var(--radius);
+    text-align: center; cursor: pointer; transition: all 0.2s;
+    background: var(--bg-inner); color: var(--text-muted);
+  }
+  .range-btn:hover { border-color: var(--brand); }
+  .range-btn.selected { border-color: var(--brand); background: var(--brand-dim); color: #c4c5f8; }
+  .range-btn .emoji { font-size: 20px; display: block; margin-bottom: 4px; }
+  .range-btn .label { font-size: 12px; font-weight: 500; }
+
+  .tag-btn {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border-default);
+    background: var(--bg-inner);
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    line-height: 1.4;
+  }
+  .tag-btn:hover {
+    border-color: var(--border-active);
+    color: var(--text-body);
+    background: var(--brand-dim);
+    transform: translateY(-1px);
+  }
+  .tag-btn.selected {
+    border-color: var(--brand);
+    background: var(--brand-dim);
+    color: #c4c5f8;
+    font-weight: 500;
+  }
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  /* === 案例卡片（带平台色条） === */
+  .case-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 0;
+    margin-bottom: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    cursor: pointer;
+    animation: fadeInUp 0.4s ease both;
+  }
+  .case-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--pf-color, var(--text-placeholder));
+    opacity: 0.7;
+    transition: opacity 0.2s, width 0.2s;
+  }
+  .case-card:hover {
+    background: var(--bg-card-hover);
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+  }
+  .case-card:hover::before {
+    opacity: 1;
+    width: 4px;
+  }
+  .case-card.expanded {
+    border-color: var(--border-default);
+  }
+  .case-card-inner {
+    padding: 16px 20px 16px 24px;
+  }
+  .case-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .case-platform {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+  }
+  .pf-weibo { background: rgba(230,22,45,0.1); color: #ff7a8a; }
+  .pf-zhihu { background: rgba(0,102,255,0.1); color: #7ab3ff; }
+  .pf-bilibili { background: rgba(0,161,214,0.1); color: #6bd8ff; }
+  .pf-xiaohongshu { background: rgba(255,36,66,0.1); color: #ff8a9a; }
+  .pf-douyin { background: rgba(255,0,80,0.1); color: #ff5d9a; }
+  .pf-kuaishou { background: rgba(255,122,0,0.1); color: #ff9f43; }
+  .pf-wechat { background: rgba(7,193,96,0.1); color: #4ee090; }
+  .pf-toutiao { background: rgba(237,64,64,0.1); color: #ff6b6b; }
+  .pf-tieba { background: rgba(41,50,225,0.1); color: #6b7aff; }
+  .pf-douban { background: rgba(0,119,34,0.1); color: #4ade80; }
+  .pf-hupu { background: rgba(192,30,47,0.1); color: #ff6b7a; }
+  .pf-jianshu { background: rgba(234,111,90,0.1); color: #ff9f7a; }
+  .pf-juejin { background: rgba(30,128,255,0.1); color: #6ba3ff; }
+  .pf-csdn { background: rgba(252,85,49,0.1); color: #ff8a5c; }
+  .pf-acfun { background: rgba(253,76,93,0.1); color: #ff7a8a; }
+  .pf-jike { background: rgba(255,228,17,0.1); color: #ffd93d; }
+  .pf-netease { background: rgba(196,51,51,0.1); color: #ff6b6b; }
+  .pf-sohu { background: rgba(255,203,5,0.1); color: #ffd93d; }
+  .pf-qqnews { background: rgba(20,121,215,0.1); color: #6ba3ff; }
+  .pf-36kr { background: rgba(107,114,128,0.1); color: #a0a0a0; }
+  .pf-sspai { background: rgba(217,58,58,0.1); color: #ff7a7a; }
+  .pf-custom { background: rgba(107,114,128,0.1); color: #b0b0b8; }
+
+  .del-btn {
+    margin-left: 8px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .del-btn:hover {
+    color: var(--red);
+    background: rgba(239,68,68,0.08);
+  }
+
+  .train-panels { display: grid; grid-template-areas: "stack"; }
+  .train-panel { grid-area: stack; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; pointer-events: none; }
+  .train-panel.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  .train-section {
+    background: var(--bg-inner);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 6px;
+    border: 1px solid var(--border-subtle);
+  }
+  .train-section:last-of-type { margin-bottom: 10px; }
+  .train-section-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .train-section-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .case-title {
+    font-size: 15px;
+    color: var(--text-primary);
+    font-weight: 500;
+    line-height: 1.5;
+    flex: 1;
+  }
+  .case-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 5px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .case-detail {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-default);
+    font-size: 13px;
+    color: var(--text-body);
+    display: none;
+  }
+  .case-card.expanded .case-detail { display: block; }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  @media (max-width: 600px) { .detail-grid { grid-template-columns: 1fr; } }
+  .detail-item .label { font-size: 11px; color: var(--text-primary); margin-bottom: 2px; }
+  .detail-item .value { color: var(--text-body); font-size: 13px; line-height: 1.5; }
+
+  .case-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .tag-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    background: var(--bg-inner);
+    color: var(--text-muted);
+    border: 1px solid var(--border-default);
+  }
+  .score-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 5px;
+    background: var(--brand-dim);
+    color: #a5a7f5;
+    font-weight: 500;
+  }
+  .acc-hit { color: var(--green); }
+  .acc-close { color: var(--amber); }
+  .acc-miss { color: #f87171; }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state .icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.6;
+  }
+  .empty-state p {
+    font-size: 13px;
+  }
+
+  /* === 统计进度条 === */
+  .stat-bar-bg {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--bg-inner);
+    overflow: hidden;
+  }
+  .stat-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--brand), var(--cyan));
+    transition: width 0.5s ease;
+  }
+
+  .progress-track {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--bg-inner);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--brand), var(--cyan));
+    transition: width 0.5s ease;
+  }
+
+  /* === 平台雷达图 === */
+  .pf-radar-layout {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+  }
+  .pf-radar-left {
+    flex: 0 0 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pf-radar-right {
+    flex: 1;
+    min-width: 0;
+  }
+  .pf-radar-row {
+    margin-bottom: 14px;
+  }
+  .pf-radar-row:last-child {
+    margin-bottom: 0;
+  }
+  .pf-radar-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .pf-radar-name {
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .pf-radar-val {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .pf-radar-bar-bg {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--bg-inner);
+    overflow: hidden;
+  }
+  .pf-radar-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #6366f1, #22d3ee);
+    transition: width 0.6s ease;
+  }
+  @media (max-width: 640px) {
+    .pf-radar-layout {
+      flex-direction: column;
+      gap: 20px;
+    }
+    .pf-radar-left {
+      flex: 0 0 auto;
+    }
+  }
+
+  /* === 模态框 === */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 50;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-xl);
+    padding: 28px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 82vh;
+    overflow: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    position: relative;
+  }
+  .modal-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+  }
+  .modal-lg { max-width: 560px; }
+
+  /* === Toast === */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    padding: 10px 24px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    border: 1px solid var(--border-default);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .fade-in { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .reveal-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .reveal-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+  }
+
+  /* === 训练能量条 === */
+  .train-energy-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--brand), var(--cyan));
+    animation: energyPulse 2s ease infinite;
+  }
+  @keyframes energyPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  /* === 结果动效 === */
+  @keyframes resultPop {
+    0% { transform: scale(0.95); opacity: 0; }
+    50% { transform: scale(1.01); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .result-pop {
+    animation: resultPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+  .shake {
+    animation: shake 0.4s ease;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* === 统计卡片 === */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 20px 16px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: var(--shadow-card);
+    position: relative;
+    transition: all 0.3s;
+    min-height: 110px;
+    border: 1px solid var(--border-subtle);
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 12px;
+    right: 12px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+  }
+  .stat-card:hover {
+    background: var(--bg-card-hover);
+    transform: translateY(-2px);
+  }
+  .stat-card .label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .stat-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .stat-card .num {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+  }
+  .stat-card .num.cyan { color: var(--cyan); }
+  .stat-card .num.green { color: var(--green); }
+
+  /* === 雷达图 === */
+  .radar-chart {
+    width: 180px;
+    height: 180px;
+    margin: 0 auto;
+  }
+  .radar-chart svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* AI Config toggle */
+  .ai-config {
+    background: var(--bg-inner);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .ai-config-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+  }
+  .ai-config-body {
+    margin-top: 12px;
+    display: none;
+  }
+  .ai-config-body.open { display: block; }
+
+  .accordion { margin-bottom: 16px; }
+  .accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-default);
+    transition: all 0.2s;
+  }
+  .accordion-header:hover { border-color: var(--border-active); }
+  .accordion-header .accordion-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .accordion-header .accordion-chevron {
+    font-size: 12px;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+  }
+  .accordion-header.open .accordion-chevron { transform: rotate(180deg); }
+  .accordion-body {
+    display: none;
+    padding-top: 16px;
+  }
+  .accordion-body.open { display: block; animation: fadeInUp 0.3s ease; }
+
+  .more-menu {
+    position: relative;
+    z-index: 9999;
+  }
+  .more-menu-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: #252842;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: var(--radius);
+    padding: 8px;
+    min-width: 180px;
+    display: none;
+    z-index: 9999;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.75);
+  }
+  .more-menu-dropdown.open { display: block; overflow: hidden; }
+  .menu-divider {
+    height: 1px;
+    background: var(--border-default);
+    margin: 4px 0;
+    border: none;
+    pointer-events: none;
+  }
+  .more-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--text-body);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .more-menu-item:hover {
+    background: var(--bg-inner);
+    color: var(--text-primary);
+  }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 响应式 */
+  @media (max-width: 640px) {
+    .header { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .header-right { width: 100%; justify-content: space-between; }
+    .status-bar { gap: 10px; padding: 4px 10px; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .tab-btn { padding: 10px 4px; font-size: 11px; }
+    .tab-btn .tab-icon { font-size: 14px; }
+    .container { padding: 20px 16px 60px; }
+  }
+</style>
+</head>
+<body>
+<!-- 遮罩层：下拉菜单打开时显示 -->
+<!-- 背景光晕 -->
+<div class="page-glow"></div>
+<div class="page-glow-cyan"></div>
+
+<div class="container">
+  <!-- Header -->
+  <header class="header">
+    <div class="logo-area">
+      <div class="logo-icon">
+        <img src="icon.png" alt="网感训练板" style="width: 55px; height: 55px; border-radius: 14px; object-fit: cover;">
+      </div>
+      <div class="logo-text">
+        <h1>网感训练板</h1>
+        <div class="subtitle">
+          <span>拆解</span>
+          <span class="divider"></span>
+          <span>预测</span>
+          <span class="divider"></span>
+          <span>AI 辅助</span>
+          <span class="badge-local"><span class="dot"></span>本地存储</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="status-bar">
+        <div class="status-item">
+          <span class="status-dot"></span>
+          <span class="status-label">今日训练</span>
+          <span class="status-num" id="statusToday">0</span>
+        </div>
+        <div class="status-divider"></div>
+        <div class="status-item">
+          <span class="status-label">准确率</span>
+          <span class="status-num status-green" id="statusAcc">0%</span>
+        </div>
+      </div>
+      <div class="more-menu">
+        <button onclick="toggleMoreMenu()" class="btn" style="padding: 10px 14px; font-size: 12px; line-height: 1; border-radius: var(--radius); background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-default);">更多 ▼</button>
+        <div class="more-menu-dropdown" id="moreMenuDropdown">
+          <button class="more-menu-item" onclick="showImport(); toggleMoreMenu();">📥 导入数据</button>
+          <button class="more-menu-item" onclick="exportData(); toggleMoreMenu();">📤 导出数据</button>
+          <div class="menu-divider"></div>
+          <button class="more-menu-item" onclick="showBookmarklet(); toggleMoreMenu();">📋 采集到剪贴板</button>
+          <button class="more-menu-item" onclick="showAiConfigModal(); toggleMoreMenu();">🤖 API 设置</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabs">
+    <button onclick="switchTab('add')" id="tab-add" class="tab-btn active">
+      <span class="tab-icon">➕</span>
+      <span>添加内容</span>
+    </button>
+    <button onclick="switchTab('library')" id="tab-library" class="tab-btn">
+      <span class="tab-icon">📚</span>
+      <span>案例库</span>
+    </button>
+    <button onclick="switchTab('train')" id="tab-train" class="tab-btn">
+      <span class="tab-icon">🎮</span>
+      <span>训练中心</span>
+    </button>
+    <button onclick="switchTab('stats')" id="tab-stats" class="tab-btn">
+      <span class="tab-icon">📊</span>
+      <span>统计</span>
+    </button>
+    <div class="tab-indicator" id="tabIndicator"></div>
+  </div>
+
+  <!-- ===== Tab: Add Content ===== -->
+  <div id="panel-add" class="tab-panel">
+    <div class="card">
+      <!-- Link + Parse -->
+      <div class="form-row" style="align-items: flex-end;">
+        <div class="form-col" style="flex: 2;">
+          <label class="form-label">内容链接</label>
+          <div class="link-row">
+            <input type="text" id="inUrl" class="input" placeholder="粘贴任意链接..." oninput="onUrlInput()">
+            <button class="btn btn-accent" onclick="aiParse()" id="btnAiParse" style="padding: 10px 14px; font-size: 12px; line-height: 1; border-radius: var(--radius);">
+              <span id="aiParseText">🤖 解析</span>
+            </button>
+            <button class="btn btn-ghost" onclick="document.getElementById('inUrl').value=''" title="清空链接" style="padding: 10px 14px; font-size: 12px; line-height: 1; border-radius: var(--radius);">清空</button>
+            <button class="btn btn-ghost" onclick="pasteImport()" title="从剪贴板导入采集数据" style="padding: 10px 14px; font-size: 12px; line-height: 1; border-radius: var(--radius); color: var(--green);">📋 粘贴</button>
+          </div>
+        </div>
+        <div class="form-col" style="flex: 1; min-width: 110px;">
+          <label class="form-label">平台</label>
+          <select id="inPlatform" class="input" style="flex: 1; min-width: 0;" onchange="onPlatformSelect()">
+            <option value="weibo">微博</option>
+            <option value="zhihu">知乎</option>
+            <option value="bilibili">B站</option>
+            <option value="xiaohongshu">小红书</option>
+            <option value="douyin">抖音</option>
+            <option value="kuaishou">快手</option>
+            <option value="wechat">公众号</option>
+            <option value="toutiao">头条/西瓜</option>
+            <option value="tieba">贴吧</option>
+            <option value="douban">豆瓣</option>
+            <option value="hupu">虎扑</option>
+            <option value="jianshu">简书</option>
+            <option value="juejin">掘金</option>
+            <option value="csdn">CSDN</option>
+            <option value="acfun">AcFun</option>
+            <option value="jike">即刻</option>
+            <option value="netease">网易</option>
+            <option value="sohu">搜狐</option>
+            <option value="qqnews">腾讯新闻</option>
+            <option value="36kr">36氪</option>
+            <option value="sspai">少数派</option>
+            <option value="custom">自定义</option>
+          </select>
+          <input type="text" id="inPlatformCustom" class="input" placeholder="输入平台名..." style="display:none; flex: 1; min-width: 100px;">
+        </div>
+      </div>
+
+      <!-- Content Source -->
+      <div class="form-row">
+        <div class="form-col full" style="flex: 0 0 100%;">
+          <label class="form-label">内容原文 <span style="color: var(--brand);">（自动抓取失败时，请手动粘贴内容全文）</span></label>
+          <textarea id="inContent" class="input" rows="4" placeholder="留空时我会尝试自动抓取链接内容&#10;如果抓取失败，请手动把内容正文复制粘贴到这里"></textarea>
+        </div>
+      </div>
+
+      <!-- Title + Tags + Score -->
+      <div class="form-row">
+        <div class="form-col" style="flex: 2;">
+          <label class="form-label">标题 <span class="required">*</span></label>
+          <input type="text" id="inTitle" class="input" placeholder="爆款标题...">
+        </div>
+        <div class="form-col" style="flex: 1;">
+          <label class="form-label">标签</label>
+          <input type="text" id="inTags" class="input" placeholder="职场 焦虑 反常识钩子">
+        </div>
+        <div class="form-col" style="flex: 0.8;">
+          <label class="form-label">综合评分 <span class="required">*</span></label>
+          <input type="number" id="inPredScore" class="input" min="1" max="10" placeholder="1-10">
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Accordion: Quality Scores -->
+      <div class="accordion">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="accordion-title"><span class="icon" style="background: var(--accent-orange); color: #fff;">🎯</span> 评分细节（可选）</div>
+          <span class="accordion-chevron">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="form-row">
+            <div class="form-col">
+              <label class="form-label">钩子强度（1-10）</label>
+              <input type="number" id="inHookScore" class="input" min="1" max="10" placeholder="5">
+            </div>
+            <div class="form-col">
+              <label class="form-label">情绪触发（1-10）</label>
+              <input type="number" id="inEmotionScore" class="input" min="1" max="10" placeholder="5">
+            </div>
+            <div class="form-col">
+              <label class="form-label">结构完整（1-10）</label>
+              <input type="number" id="inStructureScore" class="input" min="1" max="10" placeholder="5">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-col full" style="flex: 0 0 100%;">
+              <label class="form-label">评分理由（AI 会输出赛道/权重/百分位/传播潜力）</label>
+              <textarea id="inPredReason" class="input" rows="2" placeholder="基于职场赛道，钩7情6结8（权重30%/30%/40%），加权综合7分，预估打败65%竞品，传播潜力6分..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accordion: Analysis -->
+      <div class="accordion">
+        <div class="accordion-header open" onclick="toggleAccordion(this)">
+          <div class="accordion-title"><span class="icon" style="background: var(--accent-cyan); color: #fff;">🔍</span> 拆解分析</div>
+          <span class="accordion-chevron">▼</span>
+        </div>
+        <div class="accordion-body open">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div class="card-title" style="margin-bottom: 0;">拆解维度</div>
+            <button class="btn btn-ghost btn-sm" onclick="showRuleModal()">📐 规则分析</button>
+          </div>
+          <div class="analysis-grid">
+            <div>
+              <label class="form-label">钩子分析</label>
+              <textarea id="inHook" class="input" rows="3" placeholder="是什么让你停下来的？"></textarea>
+            </div>
+            <div>
+              <label class="form-label">情绪触发点</label>
+              <textarea id="inEmotion" class="input" rows="3" placeholder="引发了什么情绪？"></textarea>
+            </div>
+            <div>
+              <label class="form-label">可复用结构</label>
+              <textarea id="inStructure" class="input" rows="3" placeholder="内容是怎么组织的？"></textarea>
+            </div>
+            <div>
+              <label class="form-label">评论区洞察</label>
+              <textarea id="inComments" class="input" rows="3" placeholder="高赞评论在说什么？"></textarea>
+            </div>
+            <input type="hidden" id="inDrivers">
+          </div>
+        </div>
+      </div>
+
+      <!-- Accordion: Actual Results -->
+      <div class="accordion">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="accordion-title"><span class="icon" style="background: var(--accent-green); color: #fff;">📊</span> 实际结果（发布后可回填）</div>
+          <span class="accordion-chevron">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="form-row">
+            <div class="form-col">
+              <label class="form-label">实际综合评分（观察后回填）</label>
+              <input type="text" id="inActual" class="input" placeholder="实际数据...">
+            </div>
+            <div class="form-col">
+              <label class="form-label">预测准确度</label>
+              <select id="inAccuracy" class="input">
+                <option value="">待验证</option>
+                <option value="hit">✅ 命中</option>
+                <option value="close">🟡 接近</option>
+                <option value="miss">❌ 偏差大</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border-default);">
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-accent" onclick="saveCase()">💾 保存</button>
+          <button class="btn btn-ghost" onclick="clearForm()">清空</button>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="quickFill()" style="color: var(--text-muted);">✏️ 快速录入示例</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Tab: Library ===== -->
+  <div id="panel-library" class="tab-panel" style="display:none;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <button class="btn btn-ghost btn-sm" style="padding: 10px 14px; font-size: 12px; border-radius: var(--radius);" onclick="setLibFilter('all')" id="libf-all">全部</button>
+        <button class="btn btn-ghost btn-sm" style="padding: 10px 14px; font-size: 12px; border-radius: var(--radius);" onclick="setLibFilter('week')" id="libf-week">本周</button>
+        <input type="text" id="libSearch" class="input" placeholder="🔍 搜索..." style="width: 140px; font-size: 12px;" oninput="renderLibrary()">
+        <select id="libPfFilter" class="input" style="width: 120px; font-size: 12px;" onchange="renderLibrary()">
+          <option value="all">全部平台</option>
+          <option value="weibo">微博</option>
+          <option value="zhihu">知乎</option>
+          <option value="bilibili">B站</option>
+          <option value="xiaohongshu">小红书</option>
+          <option value="douyin">抖音</option>
+          <option value="kuaishou">快手</option>
+          <option value="wechat">公众号</option>
+          <option value="toutiao">头条/西瓜</option>
+          <option value="tieba">贴吧</option>
+          <option value="douban">豆瓣</option>
+          <option value="hupu">虎扑</option>
+          <option value="jianshu">简书</option>
+          <option value="juejin">掘金</option>
+          <option value="csdn">CSDN</option>
+          <option value="acfun">AcFun</option>
+          <option value="jike">即刻</option>
+          <option value="netease">网易</option>
+          <option value="sohu">搜狐</option>
+          <option value="qqnews">腾讯新闻</option>
+          <option value="36kr">36氪</option>
+          <option value="sspai">少数派</option>
+        </select>
+        <button class="btn btn-accent btn-sm" style="padding: 10px 14px; font-size: 12px; border-radius: var(--radius);" onclick="batchFillDrivers()">✨ 补全 AI 驱动力</button>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <span style="font-size: 12px; color: var(--text-muted);" id="libCount"></span>
+      </div>
+    </div>
+    <div id="libraryList"></div>
+  </div>
+
+  <!-- ===== Tab: Training Center ===== -->
+  <div id="panel-train" class="tab-panel" style="display:none;">
+    <div class="train-header">
+      <div class="mode-switcher">
+        <button onclick="switchTrainMode('A')" id="tmode-A" class="btn btn-accent">📝 A: 拆解填空</button>
+        <button onclick="switchTrainMode('B')" id="tmode-B" class="btn btn-ghost">🎯 B: 维度聚焦</button>
+        <button onclick="switchTrainMode('C')" id="tmode-C" class="btn btn-ghost">💬 C: 评论预言</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="trainSearch" class="input" placeholder="🔍 搜索..." style="width: 140px; font-size: 12px;" oninput="loadCurrentTrain()">
+      <select id="trainFilter" class="input" style="width: auto; font-size: 12px;" onchange="loadCurrentTrain()">
+        <option value="all">全部平台</option>
+        <option value="weibo">微博</option>
+        <option value="zhihu">知乎</option>
+        <option value="bilibili">B站</option>
+        <option value="xiaohongshu">小红书</option>
+        <option value="douyin">抖音</option>
+        <option value="kuaishou">快手</option>
+        <option value="wechat">公众号</option>
+        <option value="toutiao">头条/西瓜</option>
+        <option value="tieba">贴吧</option>
+        <option value="douban">豆瓣</option>
+        <option value="hupu">虎扑</option>
+        <option value="jianshu">简书</option>
+        <option value="juejin">掘金</option>
+        <option value="csdn">CSDN</option>
+        <option value="acfun">AcFun</option>
+        <option value="jike">即刻</option>
+        <option value="netease">网易</option>
+        <option value="sohu">搜狐</option>
+        <option value="qqnews">腾讯新闻</option>
+        <option value="36kr">36氪</option>
+        <option value="sspai">少数派</option>
+      </select>
+      <button onclick="loadCurrentTrain()" class="btn btn-ghost btn-sm" style="padding: 10px 14px; font-size: 12px; border-radius: var(--radius);">🎲 换一条</button>
+      <button onclick="aiExtractTags()" class="btn btn-ghost btn-sm" style="padding: 10px 14px; font-size: 12px; border-radius: var(--radius); color: var(--amber);">✨ AI 提炼标签</button>
+    </div>
+
+    <div class="train-panels">
+    <!-- Train A -->
+    <div id="train-A" class="train-panel active">
+      <div id="taContent"></div>
+      <div id="taGuess" style="display:none;">
+        <div class="card">
+          <div class="card-title">📝 你的拆解</div>
+
+          <div class="train-section">
+            <div class="train-section-label">🪝 钩子分析</div>
+            <div class="train-section-desc">是什么让用户停下来的？点标签快速填入，也可以自由打字。</div>
+            <div id="taHookTags" class="tag-row"></div>
+            <textarea id="taHook" rows="2" class="input" placeholder="点上方标签快速填入，也可以自由打字..."></textarea>
+            <div style="margin-top: 6px;"><button onclick="addCustomTag('hook')" class="btn btn-ghost btn-xs" style="font-size: 11px; padding: 2px 8px;">+ 添加标签</button></div>
+          </div>
+
+          <div class="train-section">
+            <div class="train-section-label">💓 情绪触发点</div>
+            <div class="train-section-desc">引发了什么情绪？点标签快速填入，也可以自由打字。</div>
+            <div id="taEmotionTags" class="tag-row"></div>
+            <textarea id="taEmotion" rows="2" class="input" placeholder="点上方标签快速填入，也可以自由打字..."></textarea>
+            <div style="margin-top: 6px;"><button onclick="addCustomTag('emotion')" class="btn btn-ghost btn-xs" style="font-size: 11px; padding: 2px 8px;">+ 添加标签</button></div>
+          </div>
+
+          <div class="train-section">
+            <div class="train-section-label">🏗 可复用结构</div>
+            <div class="train-section-desc">用了什么叙事框架？点标签快速填入，也可以自由打字。</div>
+            <div id="taStructureTags" class="tag-row"></div>
+            <textarea id="taStructure" rows="2" class="input" placeholder="点上方标签快速填入，也可以自由打字..."></textarea>
+            <div style="margin-top: 6px;"><button onclick="addCustomTag('structure')" class="btn btn-ghost btn-xs" style="font-size: 11px; padding: 2px 8px;">+ 添加标签</button></div>
+          </div>
+
+          <button onclick="submitTA()" id="btnTA" class="btn btn-accent" style="width: 100%;">提交拆解</button>
+          <button onclick="skipTA()" class="btn btn-ghost btn-sm" style="width: 100%; margin-top: 8px; font-size: 12px; color: var(--text-muted);">👁 跳过，直接看答案</button>
+        </div>
+      </div>
+      <div id="taReveal" class="mt-4" style="display:none;"></div>
+    </div>
+
+    <!-- Train B -->
+    <div id="train-B" class="train-panel">
+      <div id="tbContent"></div>
+      <div id="tbGuess" style="display:none;">
+        <div class="card">
+          <div class="card-title">🎯 维度聚焦</div>
+          <div class="train-section-desc" style="margin-bottom: 14px;">这条内容的杀手锏维度是什么？</div>
+          <div id="tbOptions" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 10px; margin-bottom: 10px;"></div>
+          <div id="tbHints" style="margin-bottom: 14px;"></div>
+          <button onclick="submitTB()" id="btnTB" class="btn btn-accent" style="width: 100%;" disabled>提交判断</button>
+          <button onclick="skipTB()" class="btn btn-ghost btn-sm" style="width: 100%; margin-top: 8px; font-size: 12px; color: var(--text-muted);">👁 跳过，直接看答案</button>
+        </div>
+      </div>
+      <div id="tbReveal" class="mt-4" style="display:none;"></div>
+    </div>
+
+    <!-- Train C -->
+    <div id="train-C" class="train-panel">
+      <div id="tcContent"></div>
+      <div id="tcGuess" style="display:none;">
+        <div class="card">
+          <div class="card-title">💬 评论预言</div>
+          <div class="train-section-desc" style="margin-bottom: 14px;">预言这条内容的最高赞评论方向。点标签快速填入，也可以自由打字。</div>
+          <div id="tcTags" class="tag-row" style="margin-bottom: 8px;"></div>
+          <textarea id="tcInput" rows="3" class="input" style="margin-bottom: 12px;" placeholder="点上方标签快速填入，也可以自由打字..."></textarea>
+          <button onclick="submitTC()" class="btn btn-accent" style="width: 100%;">提交预言</button>
+        </div>
+      </div>
+      <div id="tcReveal" class="mt-4" style="display:none;"></div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ===== Tab: Stats ===== -->
+  <div id="panel-stats" class="tab-panel" style="display:none;">
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="num" id="stTodayTotal">0</div>
+        <div class="label">今日训练</div>
+        <div class="stat-sub" id="stTodaySub">今日已练</div>
+      </div>
+      <div class="stat-card">
+        <div class="num cyan" id="stTodayAcc">0%</div>
+        <div class="label">今日准确率</div>
+        <div class="stat-sub" id="stTodayTrend">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" id="stTotal">0</div>
+        <div class="label">总训练数</div>
+        <div class="stat-sub">累计训练中</div>
+      </div>
+      <div class="stat-card">
+        <div class="num green" id="stOverallAcc">0%</div>
+        <div class="label">总体准确率</div>
+        <div class="stat-sub">稳步提升中</div>
+      </div>
+    </div>
+
+    <div class="card" id="platformStats" style="display:none;">
+      <div class="card-title"><span class="icon" style="background: var(--cyan-dim); color: var(--cyan);">📊</span> 各平台网感雷达</div>
+      <div class="pf-radar-layout">
+        <div class="pf-radar-left" id="radarChart"></div>
+        <div class="pf-radar-right" id="platformBars"></div>
+      </div>
+    </div>
+
+    <div class="card" id="modeStats" style="display:none;">
+      <div class="card-title"><span class="icon" style="background: rgba(245,158,11,0.12); color: var(--amber);">🎮</span> 各模式准确率</div>
+      <div id="modeBars" style="display: flex; flex-direction: column; gap: 12px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon" style="background: rgba(255,255,255,0.04); color: var(--text-muted);">📝</span> 最近训练记录</div>
+      <div id="statsRecords" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Rule Modal -->
+<div id="ruleModal" class="modal-overlay">
+  <div class="modal-content">
+    <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 16px;">📐 爆款内容自检清单</h3>
+    <div style="font-size: 13px; color: var(--text-body); line-height: 2;">
+      <p style="color: var(--text-primary); font-weight: 500;">钩子层</p>
+      <p>□ 前3秒/前5字有没有让人停下来的理由？</p>
+      <p>□ 有没有反常识、悬念、冲突、利益承诺？</p>
+      <p>□ 如果我是用户，我会点进去吗？</p>
+      <br>
+      <p style="color: var(--text-primary); font-weight: 500;">情绪层</p>
+      <p>□ 引发了什么情绪？（愤怒？焦虑？爽感？共鸣？好奇？）</p>
+      <p>□ 情绪强度够不够？有没有代入感？</p>
+      <p>□ 评论区的人在吵什么？为什么吵？</p>
+      <br>
+      <p style="color: var(--text-primary); font-weight: 500;">结构层</p>
+      <p>□ 信息密度是否合适？有没有水内容？</p>
+      <p>□ 节奏如何？有没有拖沓或跳跃？</p>
+      <p>□ 结尾有没有引导互动/转发/关注的钩子？</p>
+      <br>
+      <p style="color: var(--text-primary); font-weight: 500;">可复用层</p>
+      <p>□ 这个结构/钩子能迁移到我的内容吗？</p>
+      <p>□ 换个领域/人群，这个选题还成立吗？</p>
+    </div>
+    <div style="text-align: center; margin-top: 18px;">
+      <button class="btn btn-ghost" onclick="hideRuleModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div id="importModal" class="modal-overlay">
+  <div class="modal-content modal-lg">
+    <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 10px;">📥 导入数据</h3>
+    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">支持导入 JSON（案例数组）</p>
+    <textarea id="importArea" rows="8" class="input" style="font-family: monospace; font-size: 11px;" placeholder='[{"platform":"weibo","title":"..."}]'></textarea>
+    <div style="display: flex; gap: 10px; margin-top: 14px;">
+      <button class="btn btn-accent" style="flex: 1;" onclick="doImport()">导入</button>
+      <button class="btn btn-ghost" onclick="hideImport()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bookmarklet Modal -->
+<div id="bookmarkletModal" class="modal-overlay">
+  <div class="modal-content">
+    <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 10px;">📋 采集到剪贴板</h3>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">把下面紫色按钮拖到浏览器书签栏，看到想分析的内容时点一下，自动把标题+链接+正文复制到剪贴板，回到训练板点「粘贴导入」即可。</p>
+    <div style="background: var(--bg-inner); border-radius: 10px; padding: 14px; text-align: center; margin-bottom: 10px;">
+      <a id="bkmkLink" href="#" style="display: inline-block; padding: 8px 16px; background: var(--brand); color: #fff; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 500; cursor: move;">📋 复制到剪贴板</a>
+    </div>
+    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">或复制下方代码手动创建书签：</p>
+    <textarea id="bkmkCode" rows="3" class="input" style="font-size: 11px; font-family: monospace;" readonly></textarea>
+    <div style="text-align: center; margin-top: 14px;">
+      <button class="btn btn-ghost" onclick="hideBookmarklet()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Config Modal -->
+<div id="aiConfigModal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 520px;">
+    <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 14px;">🤖 AI 解析配置</h3>
+
+    <!-- API List -->
+    <div id="apiList" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;"></div>
+
+    <!-- Form -->
+    <div class="form-row">
+      <div class="form-col" style="flex: 2;">
+        <label class="form-label">配置名称</label>
+        <input type="text" id="aiName" class="input" placeholder="例如：OpenAI 主号">
+      </div>
+      <div class="form-col">
+        <label class="form-label">服务商</label>
+        <select id="aiProvider" class="input" onchange="onProviderChange()">
+          <option value="openai">OpenAI</option>
+          <option value="kimi">Kimi</option>
+          <option value="custom">自定义</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-col" style="flex: 2;">
+        <label class="form-label">Base URL</label>
+        <input type="text" id="aiBaseUrl" class="input" value="https://api.openai.com/v1" placeholder="https://...">
+      </div>
+      <div class="form-col" style="flex: 1;">
+        <label class="form-label">模型</label>
+        <input type="text" id="aiModel" class="input" value="gpt-4o-mini" placeholder="模型名称">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-col">
+        <label class="form-label">API Key</label>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input type="password" id="aiKey" class="input" placeholder="sk-..." style="flex: 1;">
+          <button type="button" onclick="toggleApiKeyVisibility()" id="btnEye" class="btn btn-ghost btn-sm" style="padding: 10px 14px; font-size: 12px;">👁️</button>
+        </div>
+      </div>
+    </div>
+    <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">API Key 仅保存在浏览器本地，不会上传任何服务器。</div>
+
+    <div style="display: flex; gap: 10px; align-items: center; margin-top: 14px;">
+      <button class="btn btn-primary btn-sm" onclick="testApiConnection()" id="btnTestApi">
+        <span id="btnTestText">🔗 检测连接</span>
+      </button>
+      <span id="apiTestResult" style="font-size: 12px;"></span>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap;">
+      <button class="btn btn-accent" style="flex: 1; min-width: 100px;" onclick="saveCurrentApi()">💾 保存当前</button>
+      <button class="btn btn-primary" style="flex: 1; min-width: 100px;" onclick="saveAsNewApi()">➕ 另存为新</button>
+      <button class="btn btn-ghost" onclick="createNewApi()">清空</button>
+      <button class="btn btn-ghost" onclick="hideAiConfigModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- Train Modal -->
+<div id="trainModal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 420px;">
+    <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 14px;">🎮 选择训练模式</h3>
+    <div id="trainModalContent"></div>
+    <div style="text-align: center; margin-top: 16px;">
+      <button class="btn btn-ghost" onclick="hideTrainModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== Storage =====================
+const LS_KEY = 'netSense_fusion_v2';
+const LS_AI_KEY = 'netSense_ai_configs_v2';
+
+let _dataCache = null;
+function loadData() {
+  if (_dataCache) return _dataCache;
+  try { _dataCache = JSON.parse(localStorage.getItem(LS_KEY)) || []; return _dataCache; }
+  catch { return []; }
+}
+function saveData(arr) {
+  localStorage.setItem(LS_KEY, JSON.stringify(arr));
+  _dataCache = arr;
+  invalidateTagCache();
+}
+
+// 跨标签页同步：其他标签页修改 localStorage 时，清空缓存并刷新当前视图
+window.addEventListener('storage', (e) => {
+  if (e.key === LS_KEY) {
+    _dataCache = null;
+    if (document.getElementById('tab-stats').classList.contains('active')) renderStats();
+    if (document.getElementById('tab-library').classList.contains('active')) renderLibrary();
+  }
+});
+function loadAiConfigs() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LS_AI_KEY));
+    if (raw && raw.apis) return raw;
+  } catch {}
+  // Migrate old single config
+  try {
+    const old = JSON.parse(localStorage.getItem('netSense_ai_config'));
+    if (old && old.key) {
+      const id = uid();
+      return { apis: [{ ...old, id, name: old.provider || '默认配置' }], activeId: id };
+    }
+  } catch {}
+  return { apis: [], activeId: null };
+}
+function saveAiConfigs(data) { localStorage.setItem(LS_AI_KEY, JSON.stringify(data)); }
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+const pfName = {
+  weibo:'微博', zhihu:'知乎', bilibili:'B站', xiaohongshu:'小红书',
+  douyin:'抖音', kuaishou:'快手', wechat:'公众号', toutiao:'头条/西瓜',
+  tieba:'贴吧', douban:'豆瓣', hupu:'虎扑', jianshu:'简书',
+  juejin:'掘金', csdn:'CSDN', acfun:'AcFun', jike:'即刻',
+  netease:'网易', sohu:'搜狐', qqnews:'腾讯新闻', '36kr':'36氪',
+  sspai:'少数派', custom:'自定义'
+};
+const pfColor = {
+  weibo:'#ff6b7a', zhihu:'#6ba3ff', bilibili:'#6bd0ff', xiaohongshu:'#ff7a8a',
+  douyin:'#ff4d8a', kuaishou:'#ff9f43', wechat:'#4ade80', toutiao:'#ff6b6b',
+  tieba:'#6b7aff', douban:'#4ade80', hupu:'#ff6b7a', jianshu:'#ff9f7a',
+  juejin:'#6ba3ff', csdn:'#ff8a5c', acfun:'#ff7a8a', jike:'#ffd93d',
+  netease:'#ff6b6b', sohu:'#ffd93d', qqnews:'#6ba3ff', '36kr':'#a0a0a0',
+  sspai:'#ff7a7a', custom:'#aaa'
+};
+
+const PROVIDER_PRESETS = {
+  openai: { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
+  kimi: { baseUrl: 'https://api.moonshot.cn/v1', model: 'moonshot-v1-8k' },
+  custom: { baseUrl: '', model: '' }
+};
+
+// ===================== AI Config =====================
+function initAiConfig() {
+  renderApiList();
+  const api = getActiveApi();
+  if (api) loadApiToForm(api);
+}
+function renderApiList() {
+  const data = loadAiConfigs();
+  const container = document.getElementById('apiList');
+  if (!data.apis.length) {
+    container.innerHTML = '<span style="font-size: 12px; color: var(--text-muted);">暂无保存的 API，请添加第一个</span>';
+    return;
+  }
+  container.innerHTML = data.apis.map(api => {
+    const isActive = api.id === data.activeId;
+    const pfLabel = { openai: 'OpenAI', kimi: 'Kimi', custom: '自定义' }[api.provider] || api.provider;
+    return `
+      <div style="position: relative; padding: 6px 12px; border-radius: 8px; border: 1px solid ${isActive ? 'var(--brand)' : 'var(--border-default)'}; background: ${isActive ? 'var(--brand-dim)' : 'var(--bg-inner)'}; display: flex; align-items: center; gap: 6px; cursor: pointer;" onclick="selectApi('${api.id}')">
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: ${isActive ? 'var(--green)' : 'var(--text-placeholder)'};"></span>
+        <span style="font-size: 12px; color: ${isActive ? 'var(--text-primary)' : 'var(--text-muted)'}">${api.name || pfLabel}</span>
+        ${isActive ? '<span style="font-size: 10px; color: var(--green);">使用中</span>' : ''}
+        <span onclick="event.stopPropagation(); deleteApi('${api.id}')" style="margin-left: 4px; font-size: 10px; color: var(--text-muted); cursor: pointer; padding: 2px 4px; border-radius: 4px;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-muted)'">✕</span>
+      </div>
+    `;
+  }).join('') + `
+    <button onclick="createNewApi()" style="padding: 6px 12px; border-radius: 8px; border: 1px dashed var(--border-active); background: transparent; color: var(--text-muted); font-size: 12px; cursor: pointer;">➕ 新建</button>
+  `;
+}
+function selectApi(id) {
+  const data = loadAiConfigs();
+  const api = data.apis.find(a => a.id === id);
+  if (!api) return;
+  data.activeId = id;
+  saveAiConfigs(data);
+  loadApiToForm(api);
+  renderApiList();
+  showToast('已切换到: ' + (api.name || api.provider));
+}
+function loadApiToForm(api) {
+  document.getElementById('aiName').value = api.name || '';
+  document.getElementById('aiProvider').value = api.provider || 'openai';
+  document.getElementById('aiBaseUrl').value = api.baseUrl || '';
+  document.getElementById('aiModel').value = api.model || '';
+  document.getElementById('aiKey').value = api.key || '';
+}
+function getFormApi() {
+  return {
+    name: document.getElementById('aiName').value.trim(),
+    provider: document.getElementById('aiProvider').value,
+    baseUrl: document.getElementById('aiBaseUrl').value.trim(),
+    model: document.getElementById('aiModel').value.trim(),
+    key: document.getElementById('aiKey').value.trim()
+  };
+}
+function toggleApiKeyVisibility() {
+  const input = document.getElementById('aiKey');
+  const btn = document.getElementById('btnEye');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁️';
+  }
+}
+function createNewApi() {
+  document.getElementById('aiName').value = '';
+  document.getElementById('aiProvider').value = 'openai';
+  document.getElementById('aiBaseUrl').value = 'https://api.openai.com/v1';
+  document.getElementById('aiModel').value = 'gpt-4o-mini';
+  document.getElementById('aiKey').value = '';
+  document.getElementById('apiTestResult').textContent = '';
+}
+function deleteCurrentApi() {
+  const data = loadAiConfigs();
+  if (!data.activeId) { showToast('没有选中的配置'); return; }
+  if (!confirm('确定删除当前 API 配置？')) return;
+  data.apis = data.apis.filter(a => a.id !== data.activeId);
+  data.activeId = data.apis[0]?.id || null;
+  saveAiConfigs(data);
+  renderApiList();
+  if (data.activeId) {
+    const api = data.apis.find(a => a.id === data.activeId);
+    if (api) loadApiToForm(api);
+  } else {
+    createNewApi();
+  }
+  showToast('已删除');
+}
+function saveCurrentApi() {
+  const data = loadAiConfigs();
+  let api;
+  if (data.activeId) {
+    api = data.apis.find(a => a.id === data.activeId);
+  }
+  if (!api) {
+    showToast('当前没有选中的配置，使用"另存为新"');
+    return;
+  }
+  const form = getFormApi();
+  Object.assign(api, form);
+  saveAiConfigs(data);
+  renderApiList();
+  showToast('配置已更新: ' + (api.name || api.provider));
+}
+function saveAsNewApi() {
+  const form = getFormApi();
+  if (!form.name) { showToast('请填写配置名称'); return; }
+  const data = loadAiConfigs();
+  const newApi = { ...form, id: uid() };
+  data.apis.push(newApi);
+  data.activeId = newApi.id;
+  saveAiConfigs(data);
+  renderApiList();
+  showToast('已保存新配置: ' + form.name);
+}
+function deleteApi(id) {
+  event.stopPropagation();
+  const data = loadAiConfigs();
+  data.apis = data.apis.filter(a => a.id !== id);
+  if (data.activeId === id) data.activeId = data.apis[0]?.id || null;
+  saveAiConfigs(data);
+  renderApiList();
+  if (data.activeId) {
+    const api = data.apis.find(a => a.id === data.activeId);
+    if (api) loadApiToForm(api);
+  } else {
+    createNewApi();
+  }
+  showToast('已删除');
+}
+function getActiveApi() {
+  const data = loadAiConfigs();
+  if (!data.activeId) return null;
+  return data.apis.find(a => a.id === data.activeId) || null;
+}
+function getAiConfig() {
+  const api = getActiveApi();
+  if (api) return api;
+  return getFormApi();
+}
+function onProviderChange() {
+  const p = document.getElementById('aiProvider').value;
+  const preset = PROVIDER_PRESETS[p];
+  if (preset.baseUrl) document.getElementById('aiBaseUrl').value = preset.baseUrl;
+  if (preset.model) document.getElementById('aiModel').value = preset.model;
+}
+async function testApiConnection() {
+  const cfg = getAiConfig();
+  if (!cfg.key) { showToast('请先填写 API Key'); return; }
+  if (!cfg.baseUrl) { showToast('请先填写 Base URL'); return; }
+
+  const btn = document.getElementById('btnTestApi');
+  const btnText = document.getElementById('btnTestText');
+  const result = document.getElementById('apiTestResult');
+  btn.disabled = true;
+  btnText.innerHTML = '<span class="loading-spinner"></span> 检测中...';
+  result.textContent = '';
+
+  try {
+    const resp = await fetch(cfg.baseUrl.replace(/\/$/, '') + '/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + cfg.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: cfg.model, messages: [{role:'user', content:'hi'}], max_tokens: 5 })
+    });
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error(`${resp.status}`);
+    }
+    const data = await resp.json();
+    if (data.choices && data.choices[0]) {
+      result.innerHTML = '<span style="color: var(--green);">✅ 连接成功</span>';
+      showToast('API 连接正常');
+    } else {
+      throw new Error('返回格式异常');
+    }
+  } catch (e) {
+    result.innerHTML = '<span style="color: var(--red);">❌ 连接失败: ' + e.message + '</span>';
+    showToast('API 连接失败: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = '🔗 检测连接';
+  }
+}
+
+function showAiConfigModal() {
+  document.getElementById('aiConfigModal').style.display = 'flex';
+  initAiConfig();
+}
+function hideAiConfigModal() {
+  document.getElementById('apiTestResult').textContent = '';
+  document.getElementById('aiConfigModal').style.display = 'none';
+}
+
+// ===================== AI Parse =====================
+function detectPlatform(url) {
+  if (/weibo\.com|weibo\.cn/.test(url)) return 'weibo';
+  if (/zhihu\.com/.test(url)) return 'zhihu';
+  if (/bilibili\.com|b23\.tv/.test(url)) return 'bilibili';
+  if (/xiaohongshu\.com|xhs\.link|xhslink\.com/.test(url)) return 'xiaohongshu';
+  if (/douyin\.com/.test(url)) return 'douyin';
+  if (/kuaishou\.com|kuaishou\.cn|gifshow\.com/.test(url)) return 'kuaishou';
+  if (/mp\.weixin\.qq\.com|weixin\.qq\.com/.test(url)) return 'wechat';
+  if (/toutiao\.com|ixigua\.com|xigua\.com/.test(url)) return 'toutiao';
+  if (/tieba\.baidu\.com/.test(url)) return 'tieba';
+  if (/douban\.com/.test(url)) return 'douban';
+  if (/hupu\.com/.test(url)) return 'hupu';
+  if (/jianshu\.com/.test(url)) return 'jianshu';
+  if (/juejin\.cn/.test(url)) return 'juejin';
+  if (/csdn\.net|blog\.csdn\.net/.test(url)) return 'csdn';
+  if (/acfun\.cn/.test(url)) return 'acfun';
+  if (/okjike\.com|jike\.r\.r\.zhimg\.com/.test(url)) return 'jike';
+  if (/163\.com|126\.com|netease\.com/.test(url)) return 'netease';
+  if (/sohu\.com/.test(url)) return 'sohu';
+  if (/news\.qq\.com|qq\.com.*news/.test(url)) return 'qqnews';
+  if (/36kr\.com/.test(url)) return '36kr';
+  if (/sspai\.com/.test(url)) return 'sspai';
+  return 'custom';
+}
+
+function setPlatformValue(pf) {
+  const select = document.getElementById('inPlatform');
+  if (select.querySelector(`option[value="${pf}"]`)) {
+    select.value = pf;
+    document.getElementById('inPlatformCustom').style.display = 'none';
+  } else {
+    select.value = 'custom';
+    document.getElementById('inPlatformCustom').value = pf;
+    document.getElementById('inPlatformCustom').style.display = '';
+  }
+}
+
+async function pasteImport() {
+  try {
+    const text = await navigator.clipboard.readText();
+    const data = JSON.parse(text);
+    if (data.title) document.getElementById('inTitle').value = data.title;
+    if (data.url) { document.getElementById('inUrl').value = data.url; onUrlInput(); }
+    if (data.platform) setPlatformValue(data.platform);
+    if (data.content) document.getElementById('inContent').value = data.content;
+    showToast('✅ 已导入：' + data.title);
+  } catch (e) {
+    const text = prompt('📋 请按 Ctrl+V 粘贴剪贴板内容，或输入采集的 JSON：');
+    if (!text) return;
+    try {
+      const data = JSON.parse(text);
+      if (data.title) document.getElementById('inTitle').value = data.title;
+      if (data.url) { document.getElementById('inUrl').value = data.url; onUrlInput(); }
+      if (data.platform) setPlatformValue(data.platform);
+      if (data.content) document.getElementById('inContent').value = data.content;
+      showToast('✅ 已导入：' + data.title);
+    } catch (err) {
+      showToast('格式不对，请从浏览器书签重新采集');
+    }
+  }
+}
+
+async function onUrlInput() {
+  const url = document.getElementById('inUrl').value.trim();
+  if (!url) return;
+  const pf = detectPlatform(url);
+  setPlatformValue(pf);
+
+  // B站尝试自动抓取
+  if (pf === 'bilibili') {
+    const bvidMatch = url.match(/BV[\w]+/);
+    if (bvidMatch) {
+      try {
+        const resp = await fetch(`https://api.bilibili.com/x/web-interface/view?bvid=${bvidMatch[0]}`);
+        const data = await resp.json();
+        if (data.data) {
+          const d = data.data;
+          if (!document.getElementById('inTitle').value.trim()) {
+            document.getElementById('inTitle').value = d.title || '';
+          }
+          if (!document.getElementById('inContent').value.trim()) {
+            document.getElementById('inContent').value = `UP主：${d.owner?.name || ''}\n播放量：${d.stat?.view || 0}  点赞：${d.stat?.like || 0}  评论：${d.stat?.reply || 0}\n简介：${d.desc || ''}`.slice(0, 2000);
+          }
+          showToast('已自动抓取 B站内容');
+        }
+      } catch (e) { console.log('B站 API 失败', e); }
+    }
+  }
+}
+
+async function aiParse() {
+  const url = document.getElementById('inUrl').value.trim();
+  let content = document.getElementById('inContent').value.trim();
+  const cfg = getAiConfig();
+
+  if (!cfg.key) { showToast('请配置 API Key'); showAiConfigModal(); return; }
+
+  const btn = document.getElementById('btnAiParse');
+  const btnText = document.getElementById('aiParseText');
+  btn.disabled = true;
+
+  // 自动识别平台
+  if (url) {
+    setPlatformValue(detectPlatform(url));
+  }
+
+  // 获取内容
+  let sourceText = '';
+  if (content) {
+    sourceText = content;
+  } else if (url) {
+    // 仅尝试 B站 API，其他平台因 CORS 无法抓取
+    btnText.innerHTML = '<span class="loading-spinner"></span> 抓取中...';
+    const pf = detectPlatform(url);
+    let fetched = null;
+    if (pf === 'bilibili') {
+      const bvidMatch = url.match(/BV[\w]+/);
+      if (bvidMatch) {
+        try {
+          const resp = await fetch(`https://api.bilibili.com/x/web-interface/view?bvid=${bvidMatch[0]}`);
+          const data = await resp.json();
+          if (data.data) {
+            const d = data.data;
+            if (!document.getElementById('inTitle').value.trim()) {
+              document.getElementById('inTitle').value = d.title || '';
+            }
+            fetched = `UP主：${d.owner?.name || ''}\n播放量：${d.stat?.view || 0}  点赞：${d.stat?.like || 0}  评论：${d.stat?.reply || 0}\n简介：${d.desc || ''}`;
+            document.getElementById('inContent').value = fetched.slice(0, 2000);
+            showToast('已自动抓取 B站内容');
+          }
+        } catch (e) { console.log('B站 API 失败', e); }
+      }
+    }
+    if (fetched) {
+      sourceText = fetched;
+    } else {
+      document.getElementById('inContent').focus();
+      showToast('请复制内容全文粘贴到「内容原文」框，然后再次点击解析');
+      btn.disabled = false;
+      btnText.textContent = '🤖 解析';
+      return;
+    }
+  } else {
+    showToast('请粘贴链接，或填写内容原文');
+    btn.disabled = false;
+    btnText.textContent = '🤖 解析';
+    return;
+  }
+
+  if (!sourceText.trim()) {
+    showToast('内容为空，请检查');
+    btn.disabled = false;
+    btnText.textContent = '🤖 解析';
+    return;
+  }
+
+  btnText.innerHTML = '<span class="loading-spinner"></span> 解析中...';
+
+  const prompt = `你是一位资深内容运营分析师，擅长拆解爆款内容的底层逻辑。
+
+请分析下面的内容，并以 JSON 格式返回以下字段：
+{
+  "title": "内容标题（如果原文有就提取，没有就概括一个）",
+  "tags": "标签，用空格分隔，最多5个",
+  "hook": "钩子分析：是什么让用户停下来的？前3秒/标题/封面抓住了什么？",
+  "emotion": "情绪触发点：引发了用户什么情绪？（愤怒/焦虑/共鸣/好奇/爽感等）",
+  "structure": "可复用结构：内容是怎么组织的？用了什么叙事结构或信息框架？",
+  "comments": "评论区方向预判：用顿号分隔 3-5 个关键词，如'吐槽、共情、质疑、求链接、玩梗'。判断用户最可能产生的评论行为模式。",
+  "hookScore": "钩子强度评分，1-10的整数（基于该赛道基准）",
+  "emotionScore": "情绪触发度评分，1-10的整数（基于该赛道基准）",
+  "structureScore": "结构完整度评分，1-10的整数（基于该赛道基准）",
+  "hookWeight": "钩子维度权重，整数百分比（如40表示40%）",
+  "emotionWeight": "情绪维度权重，整数百分比",
+  "structureWeight": "结构维度权重，整数百分比",
+  "predScore": "加权综合评分，1-10的整数（必须按权重计算，不能简单平均）",
+  "predPercentile": "预估百分位排名，整数（该内容在同赛道能打败百分之多少的竞品，如78表示Top 22%）",
+  "sharePotential": "传播潜力评分，1-10的整数（独立维度：分享动机+评论钩子+差异化）",
+  "predReason": "一句话说明评分理由，必须包含：赛道、三个维度得分、权重分配、加权综合分、百分位、传播潜力",
+  "drivers": ["传播驱动力1", "传播驱动力2", "传播驱动力3"] // 按重要性排序，TOP3传播要点，每个带emoji，简洁有力"
+}
+
+评分时必须遵循以下原则（这是核心要求，不能忽略）：
+
+【第一步：识别赛道】
+先判断该内容所属的主要赛道/领域（如职场、美食、情感、科技科普、娱乐八卦、旅游攻略、母婴育儿、财经投资等）
+
+【第二步：赛道基准评分】
+基于该赛道的行业平均水平来评分，不要脱离赛道空谈：
+- 5分 = 该赛道平均水平
+- 7分 = 该赛道中上水平
+- 9分 = 该赛道头部水平
+- 3分 = 低于平均水平
+- 1分 = 最差水平
+- 10分 = 现象级爆款
+
+【第三步：权重分配（关键）】
+根据赛道特征，为三个维度分配权重（总和必须=100%）：
+- 短视频/抖音类：钩子50% + 情绪30% + 结构20%
+- 小红书/图文类：钩子30% + 情绪40% + 结构30%
+- 知乎/深度类：钩子15% + 情绪25% + 结构60%
+- 微博/热点类：钩子45% + 情绪35% + 结构20%
+- 公众号/长文类：钩子20% + 情绪30% + 结构50%
+- 情感/共鸣类：钩子25% + 情绪50% + 结构25%
+- 知识/教程类：钩子20% + 情绪20% + 结构60%
+predScore 必须按权重加权计算，四舍五入到整数，绝对不能简单平均。
+
+【第四步：百分位排名】
+给出 predPercentile：该内容在同赛道同期内容中的预估排名百分位。
+- 90 = 打败90%的竞品（Top 10%）
+- 50 = 中等水平
+- 20 = 仅打败20%的竞品（Bottom 80%）
+
+【第五步：传播潜力（独立维度）】
+sharePotential 独立于质量评分，评估：
+- 分享动机：用户有没有"转给XX看"的理由？
+- 评论钩子：有没有争议点/讨论点让人想评论？
+- 差异化：在同质化赛道里有没有独特视角？
+
+【第六步：评分理由】
+predReason 必须包含以下全部信息（不能省略）：
+1. 赛道名称
+2. 三个维度得分
+3. 权重分配
+4. 加权综合分
+5. 百分位排名
+6. 传播潜力
+示例："基于职场赛道，钩7情6结8（权重30%/30%/40%），加权综合7分，预估打败65%竞品，传播潜力6分（有分享动机但缺乏争议点）"
+
+注意：
+- 如果某些信息在原文中没有，请基于你的专业判断进行合理推断
+- tags 用简短关键词，空格分隔
+- 所有分析要具体、有洞察力，不要泛泛而谈
+- 返回必须是合法的 JSON，不要有任何其他文字（包括 markdown 代码块标记）
+
+原文内容：
+"""
+${sourceText}
+"""`;
+
+  try {
+    const resp = await fetch(cfg.baseUrl.replace(/\/$/, '') + '/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + cfg.key,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: cfg.model,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error(`API 错误 (${resp.status}): ${err.slice(0, 200)}`);
+    }
+
+    const data = await resp.json();
+    const raw = data.choices?.[0]?.message?.content || '';
+
+    // Parse JSON
+    let result;
+    try {
+      // Try direct parse
+      result = JSON.parse(raw);
+    } catch {
+      // Try extract from markdown code block
+      const m = raw.match(/```json\s*([\s\S]*?)```/) || raw.match(/```\s*([\s\S]*?)```/);
+      if (m) result = JSON.parse(m[1]);
+      else throw new Error('返回格式不是合法 JSON');
+    }
+
+    // Fill form
+    if (result.title) document.getElementById('inTitle').value = result.title;
+    if (result.tags) document.getElementById('inTags').value = result.tags;
+    if (result.hook) document.getElementById('inHook').value = result.hook;
+    if (result.emotion) document.getElementById('inEmotion').value = result.emotion;
+    if (result.structure) document.getElementById('inStructure').value = result.structure;
+    if (result.comments) document.getElementById('inComments').value = result.comments;
+    if (result.drivers && Array.isArray(result.drivers)) document.getElementById('inDrivers').value = result.drivers.join('、');
+    if (result.hookScore) document.getElementById('inHookScore').value = result.hookScore;
+    if (result.emotionScore) document.getElementById('inEmotionScore').value = result.emotionScore;
+    if (result.structureScore) document.getElementById('inStructureScore').value = result.structureScore;
+    if (result.predScore) document.getElementById('inPredScore').value = result.predScore;
+    if (result.predReason) document.getElementById('inPredReason').value = result.predReason;
+
+    showToast('✅ AI 解析完成，已自动填入');
+  } catch (e) {
+    showToast('解析失败: ' + e.message);
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = '🤖 AI 解析';
+  }
+}
+
+// ===================== Accordion =====================
+function toggleAccordion(header) {
+  const body = header.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  if (isOpen) {
+    body.classList.remove('open');
+    header.classList.remove('open');
+  } else {
+    body.classList.add('open');
+    header.classList.add('open');
+  }
+}
+
+// ===================== Tabs =====================
+function switchTab(t) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('panel-'+t).style.display = 'block';
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.getElementById('tab-'+t);
+  activeBtn.classList.add('active');
+
+  // Tab indicator animation
+  const tabs = document.getElementById('tabs');
+  const indicator = document.getElementById('tabIndicator');
+  if (tabs && indicator && activeBtn) {
+    const tabRect = activeBtn.getBoundingClientRect();
+    const tabsRect = tabs.getBoundingClientRect();
+    indicator.style.left = (tabRect.left - tabsRect.left + tabs.scrollLeft) + 'px';
+    indicator.style.width = tabRect.width + 'px';
+  }
+
+  if (t === 'library') renderLibrary();
+  if (t === 'train') { switchTrainMode('A'); }
+  if (t === 'stats') renderStats();
+}
+
+// ===================== Add Content =====================
+function parseLink() {
+  const url = document.getElementById('inUrl').value.trim();
+  if (!url) return;
+  setPlatformValue(detectPlatform(url));
+  showToast('已自动识别平台');
+}
+
+function onPlatformSelect() {
+  const select = document.getElementById('inPlatform');
+  const customInput = document.getElementById('inPlatformCustom');
+  customInput.style.display = select.value === 'custom' ? '' : 'none';
+}
+function getPlatformValue() {
+  const select = document.getElementById('inPlatform');
+  if (select.value === 'custom') {
+    return document.getElementById('inPlatformCustom').value.trim() || '自定义';
+  }
+  return select.value;
+}
+
+function saveCase() {
+  const title = document.getElementById('inTitle').value.trim();
+  if (!title) { showToast('请填写标题'); return; }
+  const item = {
+    id: uid(),
+    platform: getPlatformValue(),
+    url: document.getElementById('inUrl').value.trim(),
+    content: document.getElementById('inContent').value.trim(),
+    title: title,
+    tags: document.getElementById('inTags').value.trim(),
+    hookScore: document.getElementById('inHookScore').value.trim(),
+    emotionScore: document.getElementById('inEmotionScore').value.trim(),
+    structureScore: document.getElementById('inStructureScore').value.trim(),
+    predScore: document.getElementById('inPredScore').value.trim(),
+    predReason: document.getElementById('inPredReason').value.trim(),
+    hook: document.getElementById('inHook').value.trim(),
+    emotion: document.getElementById('inEmotion').value.trim(),
+    structure: document.getElementById('inStructure').value.trim(),
+    comments: document.getElementById('inComments').value.trim(),
+    drivers: document.getElementById('inDrivers').value.trim(),
+    actual: document.getElementById('inActual').value.trim(),
+    accuracy: document.getElementById('inAccuracy').value,
+    training: [],
+    created: new Date().toISOString(),
+  };
+  const data = loadData();
+  data.unshift(item);
+  saveData(data);
+  showToast('已保存到案例库');
+  clearForm();
+}
+
+function clearForm() {
+  ['inUrl','inContent','inTitle','inTags','inHookScore','inEmotionScore','inStructureScore','inPredScore','inPredReason','inHook','inEmotion','inStructure','inComments','inDrivers','inActual'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('inPlatform').value = 'custom';
+  document.getElementById('inPlatformCustom').value = '';
+  document.getElementById('inPlatformCustom').style.display = 'none';
+  document.getElementById('inAccuracy').value = '';
+}
+
+function quickFill() {
+  document.getElementById('inTitle').value = '特种兵旅游之48小时吃遍重庆';
+  document.getElementById('inPlatform').value = 'xiaohongshu';
+  document.getElementById('inPlatformCustom').style.display = 'none';
+  document.getElementById('inTags').value = '旅游 特种兵 攻略 美食';
+  document.getElementById('inHookScore').value = '9';
+  document.getElementById('inEmotionScore').value = '8';
+  document.getElementById('inStructureScore').value = '7';
+  document.getElementById('inPredScore').value = '8';
+  document.getElementById('inPredReason').value = '钩子抓人 + 情绪到位 + 结构可复制';
+  document.getElementById('inHook').value = '"48小时"数字钩子制造紧迫感，"吃遍"承诺明确利益';
+  document.getElementById('inEmotion').value = '羡慕 + 冲动（我也想去）+ FOMO焦虑';
+  document.getElementById('inStructure').value = 'Day1→Day2时间线，每顿配图片+价格，结尾总花费';
+  document.getElementById('inComments').value = '求攻略链接 / 本地人认证 / 马克了下次去 / 这也太赶了';
+  showToast('已填入示例数据，修改后保存');
+}
+
+function showRuleModal() { document.getElementById('ruleModal').style.display = 'flex'; }
+function hideRuleModal() { document.getElementById('ruleModal').style.display = 'none'; }
+document.getElementById('ruleModal').addEventListener('click', function(e) { if (e.target === this) hideRuleModal(); });
+
+// ===================== Library =====================
+let libFilter = 'all';
+let expandedCards = new Set();
+
+function setLibFilter(f) {
+  libFilter = f;
+  document.getElementById('libf-all').classList.toggle('btn-accent', f === 'all');
+  document.getElementById('libf-all').classList.toggle('btn-ghost', f !== 'all');
+  document.getElementById('libf-week').classList.toggle('btn-accent', f === 'week');
+  document.getElementById('libf-week').classList.toggle('btn-ghost', f !== 'week');
+  renderLibrary();
+}
+
+function renderLibrary() {
+  let data = loadData();
+  if (libFilter === 'week') {
+    const weekAgo = new Date(Date.now() - 7*24*60*60*1000);
+    data = data.filter(d => new Date(d.created) > weekAgo);
+  }
+  // 平台筛选
+  const pfFilter = document.getElementById('libPfFilter').value;
+  if (pfFilter && pfFilter !== 'all') {
+    data = data.filter(d => d.platform === pfFilter);
+  }
+  // 搜索筛选
+  const search = document.getElementById('libSearch').value.trim().toLowerCase();
+  if (search) {
+    data = data.filter(d => {
+      const text = `${d.title || ''} ${d.tags || ''} ${d.content || ''} ${d.hook || ''} ${d.emotion || ''} ${d.structure || ''}`.toLowerCase();
+      return text.includes(search);
+    });
+  }
+  document.getElementById('libCount').textContent = `共 ${data.length} 条`;
+  const container = document.getElementById('libraryList');
+  if (!data.length) {
+    const hasData = loadData().length > 0;
+    const msg = hasData ? '没有符合条件的案例，试试调整搜索或筛选条件' : '暂无案例，切换到「添加内容」录入第一条';
+    container.innerHTML = `<div class="empty-state">${msg}</div>`;
+    return;
+  }
+
+  container.innerHTML = data.map(item => {
+    const isExpanded = expandedCards.has(item.id);
+    const pfCls = pfColor[item.platform] ? ('pf-' + item.platform) : 'pf-custom';
+    const pf = pfName[item.platform] || item.platform;
+    const scoreHtml = item.predScore ? `<span class="score-pill">评分 ${item.predScore}/10</span>` : '';
+    const accHtml = item.accuracy ? { hit: '<span class="acc-hit">✅ 命中</span>', close: '<span class="acc-close">🟡 接近</span>', miss: '<span class="acc-miss">❌ 偏差</span>' }[item.accuracy] : '';
+    const tagsHtml = item.tags ? item.tags.split(/\s+/).filter(Boolean).map(t => `<span class="tag-pill">${t}</span>`).join(' ') : '';
+    const trainCount = (item.training || []).length;
+    const contentMissing = !item.content ? '<span style="font-size: 10px; padding: 1px 6px; border-radius: 4px; background: rgba(245,158,11,0.08); color: var(--amber); margin-left: 6px;">📋 正文待补充</span>' : '';
+
+    let detailHtml = '';
+    const pfColorVal = pfColor[item.platform] || '#aaa';
+    if (isExpanded) {
+      const hasAnalysis = item.hook || item.emotion || item.structure || item.comments;
+      detailHtml = `
+        <div class="case-detail">
+          <!-- 评分仪表盘 -->
+          ${item.hookScore || item.emotionScore || item.structureScore || item.predScore ? `
+          <div style="margin-bottom: 14px; padding: 12px 14px; background: var(--bg-inner); border-radius: 10px; border: 1px solid var(--border-default);">
+            <div style="font-size: 11px; color: var(--brand); margin-bottom: 10px; font-weight: 600; letter-spacing: 0.5px;">🎯 内容质量评分</div>
+            <div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center;">
+              <div style="text-align: center; min-width: 36px;">
+                <div style="font-size: 22px; font-weight: 700; color: var(--cyan); line-height: 1;">${item.predScore || '—'}</div>
+                <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">综合</div>
+              </div>
+              <div style="width: 1px; height: 32px; background: var(--border-default);"></div>
+              <div style="display: flex; gap: 12px;">
+                ${item.hookScore ? `<div style="text-align: center;"><div style="font-size: 14px; font-weight: 600; color: var(--text-primary);">${item.hookScore}</div><div style="font-size: 10px; color: var(--text-body);">钩子</div></div>` : ''}
+                ${item.emotionScore ? `<div style="text-align: center;"><div style="font-size: 14px; font-weight: 600; color: var(--text-primary);">${item.emotionScore}</div><div style="font-size: 10px; color: var(--text-body);">情绪</div></div>` : ''}
+                ${item.structureScore ? `<div style="text-align: center;"><div style="font-size: 14px; font-weight: 600; color: var(--text-primary);">${item.structureScore}</div><div style="font-size: 10px; color: var(--text-body);">结构</div></div>` : ''}
+              </div>
+              ${item.predReason ? `<div style="flex: 1; min-width: 200px; font-size: 12px; color: var(--text-muted); line-height: 1.5; padding-left: 10px; border-left: 1px solid var(--border-default);">${item.predReason}</div>` : ''}
+            </div>
+          </div>` : ''}
+
+          <!-- 标签 -->
+          ${tagsHtml ? `<div style="margin-bottom: 12px;">${tagsHtml}</div>` : ''}
+
+          <!-- 内容原文 -->
+          ${item.content ? `
+          <div style="margin-bottom: 14px;">
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500;">📝 内容原文</div>
+            <div style="padding: 10px 12px; background: var(--bg-inner); border-radius: 8px; font-size: 12px; color: var(--text-muted); max-height: 120px; overflow: auto; line-height: 1.6;">${item.content.slice(0, 400)}${item.content.length > 400 ? '...' : ''}</div>
+          </div>` : ''}
+
+          <!-- 拆解分析 -->
+          ${hasAnalysis ? `
+          <div style="margin-bottom: 14px;">
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px; font-weight: 500;">🔍 拆解分析</div>
+            <div class="detail-grid">
+              ${item.hook ? `<div class="detail-item" style="background: var(--bg-inner); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-default);"><div class="label">🪝 钩子分析</div><div class="value">${item.hook}</div></div>` : ''}
+              ${item.emotion ? `<div class="detail-item" style="background: var(--bg-inner); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-default);"><div class="label">💓 情绪触发点</div><div class="value">${item.emotion}</div></div>` : ''}
+              ${item.structure ? `<div class="detail-item" style="background: var(--bg-inner); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-default);"><div class="label">🏗 可复用结构</div><div class="value">${item.structure}</div></div>` : ''}
+              ${item.comments ? `<div class="detail-item" style="background: var(--bg-inner); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-default);"><div class="label">💬 评论区洞察</div><div class="value">${item.comments}</div></div>` : ''}
+            </div>
+          </div>` : ''}
+
+          <!-- 训练记录 -->
+          ${item.training && item.training.length ? `<div style="font-size: 11px; color: var(--text-muted); margin-bottom: 14px;">🎮 训练过 ${item.training.length} 次</div>` : ''}
+
+          <!-- 操作按钮 -->
+          <div class="case-actions">
+            <button class="btn btn-accent btn-sm" onclick="startTrainFromLib('${item.id}', 'A')">📝 A训练</button>
+            <button class="btn btn-accent btn-sm" onclick="startTrainFromLib('${item.id}', 'B')">🎯 B训练</button>
+            <button class="btn btn-accent btn-sm" onclick="startTrainFromLib('${item.id}', 'C')">💬 C训练</button>
+            <button class="btn btn-ghost btn-sm" onclick="editCase('${item.id}')">编辑</button>
+            <button class="btn btn-ghost btn-sm" onclick="deleteCase('${item.id}')">删除</button>
+            ${item.url ? `<a href="${item.url}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;" onclick="event.stopPropagation()">查看原文 ↗</a>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+    <div class="case-card ${isExpanded ? 'expanded' : ''}" id="libcard-${item.id}" onclick="toggleLibCard('${item.id}')" style="--pf-color: ${pfColorVal};">
+      <div class="case-card-inner">
+        <div class="case-header">
+          <span class="case-platform ${pfCls}">${pf}</span>
+          <div style="flex:1; min-width:0;">
+            <div class="case-title">${item.title}</div>
+            <div class="case-meta">
+              <span>${pfName[item.platform] || item.platform}</span>
+              ${scoreHtml}
+              ${accHtml}
+              ${trainCount ? `<span style="color:var(--brand);">🎮 训练${trainCount}次</span>` : ''}
+              ${contentMissing}
+            </div>
+          </div>
+          <span class="del-btn" onclick="event.stopPropagation(); deleteCase('${item.id}')" title="删除"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></span>
+        </div>
+        ${detailHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleLibCard(id) {
+  if (expandedCards.has(id)) expandedCards.delete(id);
+  else expandedCards.add(id);
+  renderLibrary();
+}
+
+function deleteCase(id) {
+  event.stopPropagation();
+  if (!confirm('确定删除这条案例？')) return;
+  saveData(loadData().filter(d => d.id !== id));
+  expandedCards.delete(id);
+  renderLibrary();
+  showToast('已删除');
+}
+
+function editCase(id) {
+  event.stopPropagation();
+  const item = loadData().find(d => d.id === id);
+  if (!item) return;
+  document.getElementById('inUrl').value = item.url || '';
+  document.getElementById('inContent').value = item.content || '';
+  const pf = item.platform || 'custom';
+  const pfSelect = document.getElementById('inPlatform');
+  if (pfSelect.querySelector(`option[value="${pf}"]`)) {
+    pfSelect.value = pf;
+    document.getElementById('inPlatformCustom').style.display = 'none';
+  } else {
+    pfSelect.value = 'custom';
+    document.getElementById('inPlatformCustom').value = pf;
+    document.getElementById('inPlatformCustom').style.display = '';
+  }
+  document.getElementById('inTitle').value = item.title || '';
+  document.getElementById('inTags').value = item.tags || '';
+  document.getElementById('inHookScore').value = item.hookScore || '';
+  document.getElementById('inEmotionScore').value = item.emotionScore || '';
+  document.getElementById('inStructureScore').value = item.structureScore || '';
+  document.getElementById('inPredScore').value = item.predScore || '';
+  document.getElementById('inPredReason').value = item.predReason || '';
+  document.getElementById('inHook').value = item.hook || '';
+  document.getElementById('inEmotion').value = item.emotion || '';
+  document.getElementById('inStructure').value = item.structure || '';
+  document.getElementById('inComments').value = item.comments || '';
+  document.getElementById('inDrivers').value = item.drivers || '';
+  document.getElementById('inActual').value = item.actual || '';
+  document.getElementById('inAccuracy').value = item.accuracy || '';
+  saveData(loadData().filter(d => d.id !== id));
+  switchTab('add');
+  showToast('已加载到表单，修改后保存');
+  renderLibrary();
+}
+
+// ===================== Training Center =====================
+let trainMode = 'A';
+let curTA = null, pickTAVal = null;
+let curTB = null;
+let curTC = null;
+
+function switchTrainMode(m) {
+  trainMode = m;
+  ['A','B','C'].forEach(x => {
+    const btn = document.getElementById('tmode-'+x);
+    const panel = document.getElementById('train-'+x);
+    if (x === m) { btn.classList.remove('btn-ghost'); btn.classList.add('btn-accent'); panel.classList.add('active'); }
+    else { btn.classList.remove('btn-accent'); btn.classList.add('btn-ghost'); panel.classList.remove('active'); }
+  });
+  if (m === 'A') loadTrainA();
+  if (m === 'B') loadTrainB();
+  if (m === 'C') loadTrainC();
+}
+
+function loadCurrentTrain() {
+  if (trainMode === 'A') loadTrainA();
+  if (trainMode === 'B') loadTrainB();
+  if (trainMode === 'C') loadTrainC();
+}
+
+function getPool(filter = 'all', type = 'any') {
+  let data = loadData();
+  if (filter !== 'all') data = data.filter(d => d.platform === filter);
+  if (type === 'analysis') data = data.filter(d => d.hook || d.emotion || d.structure || d.comments);
+  if (type === 'scored') data = data.filter(d => d.hookScore || d.emotionScore || d.structureScore);
+  return data;
+}
+
+function miniCard(item, hideStats) {
+  return `
+  <div class="card" style="margin-bottom: 10px;">
+    <div style="font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;">📖 训练案例</div>
+    <div style="display: flex; align-items: flex-start; gap: 10px;">
+      <div style="flex: 1; min-width: 0;">
+        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+          <span style="font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 5px; background: ${pfColor[item.platform] ? pfColor[item.platform] + '15' : 'rgba(107,114,128,0.1)'}; color: ${pfColor[item.platform] || '#b0b0b8'};">${pfName[item.platform] || item.platform}</span>
+        </div>
+        <div style="font-size: 15px; color: var(--text-primary); font-weight: 500; line-height: 1.5;">${item.title}</div>
+        ${item.url ? `<a href="${item.url}" target="_blank" style="font-size: 11px; color: var(--brand); text-decoration: none; margin-top: 6px; display: inline-block;">查看原文 →</a>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ---- Dynamic Tag System ----
+let _tagCache = null; // { hook:[], emotion:[], structure:[] }
+let _tagCacheDataHash = '';
+
+function _computeTagCache() {
+  const cache = {};
+  ['hook','emotion','structure'].forEach(field => {
+    const data = loadData();
+    const counts = {};
+    data.forEach(item => {
+      const text = (item[field] || '').trim();
+      if (!text) return;
+      const parts = text.split(/[,，、\n\r]+/).map(s => s.trim()).filter(s => s.length >= 2 && s.length <= 18);
+      parts.forEach(tag => { counts[tag] = (counts[tag] || 0) + 1; });
+    });
+    const userTags = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([tag]) => tag);
+    const customTags = getCustomTags(field);
+    const aiTags = (getAITags()[field] || []);
+    const all = [...aiTags, ...userTags, ...customTags, ...DEFAULT_TAGS[field]];
+    cache[field] = [...new Set(all)].slice(0, 8);
+  });
+  return cache;
+}
+
+function _getCachedTags(field) {
+  const data = loadData();
+  const hash = data.length + '|' + (data[0]?.id || '');
+  if (!_tagCache || _tagCacheDataHash !== hash) {
+    _tagCache = _computeTagCache();
+    _tagCacheDataHash = hash;
+  }
+  return _tagCache[field] || [];
+}
+
+function invalidateTagCache() {
+  _tagCache = null;
+  _tagCacheDataHash = '';
+}
+
+const DEFAULT_TAGS = {
+  hook: ['🎯 痛点共鸣','🔥 情绪爆破','🧠 认知颠覆','🧲 好奇缺口','💰 利益诱惑','👤 身份标签','⚡ 时效紧迫','🎭 反常识'],
+  emotion: ['😤 愤怒','😰 焦虑','🤗 共鸣','🤩 爽感','🤔 好奇','😂 幽默','😢 催泪','🥰 治愈'],
+  structure: ['📌 痛点→方案','🎢 故事线','⚔️ 冲突反转','📊 数据论证','🔍 设问解答','📋 清单步骤','👤 亲历叙事','🎭 场景对话']
+};
+
+function getCustomTags(field) {
+  try { return JSON.parse(localStorage.getItem('netSense_customTags_' + field) || '[]'); }
+  catch(e) { return []; }
+}
+
+function extractUserTags(field) {
+  return _getCachedTags(field);
+}
+
+function sortTagsByRelevance(tags, caseItem) {
+  if (!caseItem) return tags;
+  const text = (`${caseItem.title || ''} ${caseItem.hook || ''} ${caseItem.emotion || ''} ${caseItem.structure || ''} ${caseItem.content || ''}`).toLowerCase();
+  const stripEmoji = s => s.replace(/[^\u4e00-\u9fa5a-zA-Z0-9→]/g, '').toLowerCase();
+  return tags.slice().sort((a, b) => {
+    const aScore = text.includes(stripEmoji(a)) ? 10 : 0;
+    const bScore = text.includes(stripEmoji(b)) ? 10 : 0;
+    return bScore - aScore;
+  });
+}
+
+function renderTags() {
+  const map = { hook: 'taHook', emotion: 'taEmotion', structure: 'taStructure' };
+  Object.entries(map).forEach(([field, textareaId]) => {
+    const container = document.getElementById(textareaId + 'Tags');
+    if (!container) return;
+    let tags = extractUserTags(field);
+    // 根据当前案例内容排序，相关的置顶
+    const caseItem = field === 'hook' || field === 'emotion' || field === 'structure' ? curTA : null;
+    tags = sortTagsByRelevance(tags, caseItem);
+    container.innerHTML = tags.map(tag =>
+      `<span class="tag-btn" onclick="toggleTag(this,'${textareaId}')" data-tag="${tag}">${tag}</span>`
+    ).join('');
+  });
+}
+
+function addCustomTag(field) {
+  const tag = prompt('输入新标签（如：🎰 悬念埋设）：');
+  if (!tag || !tag.trim()) return;
+  const key = 'netSense_customTags_' + field;
+  const existing = getCustomTags(field);
+  if (!existing.includes(tag.trim())) {
+    existing.push(tag.trim());
+    localStorage.setItem(key, JSON.stringify(existing));
+  }
+  renderTags();
+}
+
+function getAITags() {
+  try { return JSON.parse(localStorage.getItem('netSense_aiTags') || '{}'); }
+  catch(e) { return {}; }
+}
+
+async function aiExtractTags() {
+  const data = loadData().filter(d => d.hook || d.emotion || d.structure);
+  if (data.length < 3) {
+    showToast('案例库中带拆解的案例不足 3 条，先添加一些再提炼');
+    return;
+  }
+  const cfg = getAiConfig();
+  if (!cfg.key) { showToast('请配置 API Key'); showAiConfigModal(); return; }
+
+  const btn = event.target.closest('button');
+  const origText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> 提炼中...';
+
+  // 先确保缓存已计算
+  _getCachedTags('hook');
+  const userTop = {
+    hook: _tagCache.hook.filter(t => !DEFAULT_TAGS.hook.includes(t)).slice(0, 6),
+    emotion: _tagCache.emotion.filter(t => !DEFAULT_TAGS.emotion.includes(t)).slice(0, 6),
+    structure: _tagCache.structure.filter(t => !DEFAULT_TAGS.structure.includes(t)).slice(0, 6)
+  };
+
+  // 最多发 8 条代表性案例，避免 Prompt 过大
+  const sampleCases = data.slice(0, 8);
+  const samples = sampleCases.map((d, i) =>
+`[${i+1}] ${(d.title || '无标题').slice(0, 30)} 钩子：${(d.hook || '').slice(0, 40)} 情绪：${(d.emotion || '').slice(0, 40)} 结构：${(d.structure || '').slice(0, 40)}`).join('\n');
+
+  const prompt = `你是一位内容拆解专家。请基于用户已有的拆解数据，归纳提炼一套最贴合其分析习惯的标签体系。
+
+【用户高频标签】
+钩子：${userTop.hook.join('、') || '（暂无）'}
+情绪：${userTop.emotion.join('、') || '（暂无）'}
+结构：${userTop.structure.join('、') || '（暂无）'}
+
+【代表性案例】
+${samples}
+
+要求：
+1. 每个维度给出 6-10 个标签
+2. 标签要带 emoji，简洁有力，2-8 个字
+3. 优先提取用户实际高频使用的概念，不要生造
+4. 返回严格 JSON，不要任何其他文字
+
+{"hook":["..."],"emotion":["..."],"structure":["..."]}`;
+
+  try {
+    const resp = await fetch(cfg.baseUrl.replace(/\/$/, '') + '/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + cfg.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: cfg.model, messages: [{ role: 'user', content: prompt }], temperature: 0.5 })
+    });
+    if (!resp.ok) { const err = await resp.text(); throw new Error(`API 错误 (${resp.status})`); }
+    const result = await resp.json();
+    const raw = result.choices?.[0]?.message?.content || '';
+    let tags;
+    try { tags = JSON.parse(raw); }
+    catch {
+      const m = raw.match(/```json\s*([\s\S]*?)```/) || raw.match(/```\s*([\s\S]*?)```/);
+      if (m) tags = JSON.parse(m[1]);
+      else throw new Error('返回格式不是合法 JSON');
+    }
+    if (!tags.hook || !tags.emotion || !tags.structure) throw new Error('返回数据缺少维度');
+    localStorage.setItem('netSense_aiTags', JSON.stringify(tags));
+    invalidateTagCache();
+    renderTags();
+    showToast('✅ AI 标签提炼完成！');
+  } catch (e) {
+    showToast('提炼失败: ' + e.message);
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origText;
+  }
+}
+
+// ---- Tag toggle helper ----
+function toggleMoreMenu() {
+  document.getElementById('moreMenuDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.more-menu')) {
+    const d = document.getElementById('moreMenuDropdown');
+    if (d) d.classList.remove('open');
+  }
+});
+
+function toggleTag(btn, textareaId) {
+  const tag = btn.dataset.tag;
+  const el = document.getElementById(textareaId);
+  const current = el.value.trim();
+  const sep = '、';
+  const parts = current ? current.split(/[,，、]/).map(s => s.trim()).filter(Boolean) : [];
+  const idx = parts.indexOf(tag);
+  if (idx >= 0) {
+    parts.splice(idx, 1);
+    btn.classList.remove('selected');
+  } else {
+    parts.push(tag);
+    btn.classList.add('selected');
+  }
+  el.value = parts.join(sep);
+}
+
+// ---- Train A: 拆解填空 ----
+function loadTrainA() {
+  const filter = document.getElementById('trainFilter').value;
+  const search = document.getElementById('trainSearch').value.trim().toLowerCase();
+  let pool = getPool(filter, 'analysis');
+  if (search) {
+    pool = pool.filter(d =>
+      (d.title || '').toLowerCase().includes(search) ||
+      (d.content || '').toLowerCase().includes(search) ||
+      (d.tags || '').toLowerCase().includes(search)
+    );
+  }
+  if (!pool.length) {
+    document.getElementById('taContent').innerHTML = trainEmpty('暂无匹配的案例<br><span style="font-size:11px;color:var(--text-muted);">试试换个搜索词，或清空搜索</span>');
+    document.getElementById('taGuess').style.display = 'none';
+    document.getElementById('taReveal').style.display = 'none';
+    return;
+  }
+  curTA = pool[Math.floor(Math.random() * pool.length)];
+  document.getElementById('taContent').innerHTML = miniCard(curTA, true);
+  document.getElementById('taGuess').style.display = 'block';
+  document.getElementById('taReveal').style.display = 'none';
+  document.getElementById('taHook').value = '';
+  document.getElementById('taEmotion').value = '';
+  document.getElementById('taStructure').value = '';
+  renderTags();
+}
+function submitTA() {
+  if (!curTA) return;
+  const guess = {
+    hook: document.getElementById('taHook').value.trim(),
+    emotion: document.getElementById('taEmotion').value.trim(),
+    structure: document.getElementById('taStructure').value.trim()
+  };
+  addTraining(curTA.id, 'A', JSON.stringify(guess));
+  document.getElementById('taReveal').innerHTML = `
+    <div class="reveal-box result-pop">
+      <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">📊 揭晓答案</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+        <div style="background: var(--bg-inner); border-radius: 10px; padding: 12px; font-size: 12px;">
+          <div style="font-size: 11px; color: var(--brand); margin-bottom: 6px; font-weight: 600;">📝 你的拆解</div>
+          ${guess.hook ? `<div style="margin-bottom: 6px;"><span style="color:var(--text-muted);">钩子：</span><span style="color:var(--text-body);">${guess.hook}</span></div>` : '<div style="color:var(--text-muted);">（未填写）</div>'}
+          ${guess.emotion ? `<div style="margin-bottom: 6px;"><span style="color:var(--text-muted);">情绪：</span><span style="color:var(--text-body);">${guess.emotion}</span></div>` : ''}
+          ${guess.structure ? `<div><span style="color:var(--text-muted);">结构：</span><span style="color:var(--text-body);">${guess.structure}</span></div>` : ''}
+        </div>
+        <div style="background: var(--bg-inner); border-radius: 10px; padding: 12px; font-size: 12px; border: 1px solid var(--border-default);">
+          <div style="font-size: 11px; color: var(--green); margin-bottom: 6px; font-weight: 600;">✅ 参考答案</div>
+          ${curTA.hook ? `<div style="margin-bottom: 6px;"><span style="color:var(--text-muted);">钩子：</span><span style="color:var(--text-body);">${curTA.hook}</span></div>` : '<div style="color:var(--text-muted);">（未录入）</div>'}
+          ${curTA.emotion ? `<div style="margin-bottom: 6px;"><span style="color:var(--text-muted);">情绪：</span><span style="color:var(--text-body);">${curTA.emotion}</span></div>` : ''}
+          ${curTA.structure ? `<div><span style="color:var(--text-muted);">结构：</span><span style="color:var(--text-body);">${curTA.structure}</span></div>` : ''}
+        </div>
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px; text-align: center;">对比你的观察和参考答案，重点看「有没有观察到这些维度」</div>
+      <div style="display: flex; gap: 10px;">
+        <button onclick="judgeTA(true)" class="btn btn-green" style="flex: 1;">✅ 接近</button>
+        <button onclick="judgeTA(false)" class="btn btn-red" style="flex: 1;">❌ 偏差</button>
+      </div>
+      <button onclick="backToGuess('A')" class="btn btn-ghost btn-sm" style="width: 100%; margin-top: 10px; font-size: 12px; color: var(--text-muted);">↩ 返回重选</button>
+    </div>`;
+  document.getElementById('taReveal').style.display = 'block';
+  document.getElementById('taGuess').style.display = 'none';
+}
+function skipTA() {
+  if (!curTA) return;
+  document.getElementById('taReveal').innerHTML = `
+    <div class="reveal-box result-pop">
+      <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">📖 参考答案</div>
+      <div style="background: var(--bg-inner); border-radius: 10px; padding: 12px; font-size: 13px; border: 1px solid var(--border-default);">
+        ${curTA.hook ? `<div style="margin-bottom: 6px;"><span style="color:var(--text-muted);">钩子：</span><span style="color:var(--text-body);">${curTA.hook}</span></div>` : '<div style="color:var(--text-muted);">（未录入）</div>'}
+        ${curTA.emotion ? `<div style="margin-bottom: 6px;"><span style="color:var(--text-muted);">情绪：</span><span style="color:var(--text-body);">${curTA.emotion}</span></div>` : ''}
+        ${curTA.structure ? `<div><span style="color:var(--text-muted);">结构：</span><span style="color:var(--text-body);">${curTA.structure}</span></div>` : ''}
+      </div>
+      <div style="text-align: center; margin-top: 12px;">
+        <button onclick="loadTrainA()" class="btn btn-accent btn-sm" style="margin-right: 8px;">🎲 下一条</button>
+        <button onclick="backToGuess('A')" class="btn btn-ghost btn-sm">↩ 返回重选</button>
+      </div>
+    </div>`;
+  document.getElementById('taReveal').style.display = 'block';
+  document.getElementById('taGuess').style.display = 'none';
+}
+function judgeTA(ok) {
+  document.getElementById('taReveal').innerHTML += '<div style="margin-top: 12px; text-align: center; color: var(--green); font-size: 13px;">✓ 已记录！1.5秒后换题 →</div>';
+  renderStats(); setTimeout(loadTrainA, 1500);
+}
+
+// ---- Train B: 维度聚焦 ----
+let pickTBVal = null;
+function loadTrainB() {
+  const filter = document.getElementById('trainFilter').value;
+  const search = document.getElementById('trainSearch').value.trim().toLowerCase();
+  let pool = getPool(filter, 'scored');
+  if (search) {
+    pool = pool.filter(d =>
+      (d.title || '').toLowerCase().includes(search) ||
+      (d.content || '').toLowerCase().includes(search) ||
+      (d.tags || '').toLowerCase().includes(search)
+    );
+  }
+  if (!pool.length) {
+    document.getElementById('tbContent').innerHTML = trainEmpty('暂无匹配的案例<br><span style="font-size:11px;color:var(--text-muted);">试试换个搜索词，或清空搜索</span>');
+    document.getElementById('tbGuess').style.display = 'none';
+    document.getElementById('tbReveal').style.display = 'none';
+    return;
+  }
+  curTB = pool[Math.floor(Math.random() * pool.length)];
+  pickTBVal = null;
+  document.getElementById('tbContent').innerHTML = miniCard(curTB, true);
+  document.getElementById('tbGuess').style.display = 'block';
+  document.getElementById('tbReveal').style.display = 'none';
+  document.getElementById('btnTB').disabled = true;
+
+  // 动态渲染选项：有 drivers 用 drivers，否则用默认三维度
+  const drivers = curTB.drivers ? curTB.drivers.split(/[,，、]+/).map(s => s.trim()).filter(Boolean) : [];
+  if (drivers.length >= 3) {
+    document.getElementById('tbOptions').innerHTML = drivers.slice(0, 5).map((d, i) => {
+      const m = d.match(/^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\p{Extended_Pictographic})+\s*(.*)/u);
+      const emoji = m ? m[1] : '🔹';
+      const label = m ? m[2] : d;
+      return `<div class="range-btn" onclick="pickTB('${d.replace(/'/g, "\\'")}')" data-v="${d.replace(/"/g, '&quot;')}"><span class="emoji">${emoji}</span><span class="label">${label}</span></div>`;
+    }).join('');
+    document.getElementById('tbHints').innerHTML = '<div style="font-size: 11px; color: var(--text-muted);">🤖 AI 预计算的传播驱动力 TOP3，选出你认为最核心的</div>';
+  } else {
+    document.getElementById('tbOptions').innerHTML = `
+      <div class="range-btn" onclick="pickTB('hook')" data-v="hook"><span class="emoji">🪝</span><span class="label">钩子主导</span></div>
+      <div class="range-btn" onclick="pickTB('emotion')" data-v="emotion"><span class="emoji">💓</span><span class="label">情绪主导</span></div>
+      <div class="range-btn" onclick="pickTB('structure')" data-v="structure"><span class="emoji">🏗</span><span class="label">结构主导</span></div>`;
+    const hints = { hook: curTB.hook, emotion: curTB.emotion, structure: curTB.structure };
+    const dimMap = { hook: '🪝', emotion: '💓', structure: '🏗' };
+    const hintHtml = Object.entries(hints).map(([dim, text]) => {
+      if (!text) return '';
+      const tags = text.split(/[,，、\n\r]+/).map(s => s.trim()).filter(s => s.length >= 2 && s.length <= 18).slice(0, 3);
+      if (!tags.length) return '';
+      return `<div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">${dimMap[dim]} ${tags.map(t => `<span style="display:inline-block;padding:1px 6px;border-radius:10px;background:var(--bg-card-hover);border:1px solid var(--border-default);color:var(--text-muted);margin-right:4px;">${t}</span>`).join('')}</div>`;
+    }).filter(Boolean).join('');
+    document.getElementById('tbHints').innerHTML = hintHtml || '<div style="font-size: 11px; color: var(--text-muted);">暂无标签线索，凭直觉判断 👇</div>';
+  }
+}
+function pickTB(v) {
+  pickTBVal = v;
+  document.querySelectorAll('#train-B .range-btn').forEach(b => b.classList.toggle('selected', b.dataset.v === v));
+  document.getElementById('btnTB').disabled = false;
+}
+function submitTB() {
+  if (!pickTBVal || !curTB) return;
+  const guess = pickTBVal;
+  const drivers = curTB.drivers ? curTB.drivers.split(/[,，、]+/).map(s => s.trim()).filter(Boolean) : [];
+  let isCorrect = false;
+  let revealHtml = '';
+
+  if (drivers.length >= 3) {
+    const correct = drivers[0];
+    isCorrect = guess === correct;
+    revealHtml = `
+      <div class="reveal-box result-pop">
+        <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">📊 揭晓答案</div>
+        <div style="background: var(--bg-inner); border-radius: 10px; padding: 12px; margin-bottom: 12px; font-size: 13px;">
+          <div style="color: var(--text-muted); margin-bottom: 8px;">你的判断：<span style="color: var(--cyan); font-weight: 500;">${guess}</span></div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">TOP3：${drivers.slice(0,3).join(' > ')}</div>
+          <div style="color: ${isCorrect ? 'var(--green)' : 'var(--red)'}; font-weight: 500;">${isCorrect ? '✅ 正确！核心驱动力是「' + correct + '」' : '❌ 实际核心驱动力是「' + correct + '」'}</div>
+        </div>
+        <div style="text-align: center;">
+          <button onclick="loadTrainB()" class="btn btn-accent btn-sm" style="margin-right: 8px;">🎲 下一条</button>
+          <button onclick="backToGuess('B')" class="btn btn-ghost btn-sm">↩ 返回重选</button>
+        </div>
+      </div>`;
+  } else {
+    const scores = {
+      hook: parseInt(curTB.hookScore) || 0,
+      emotion: parseInt(curTB.emotionScore) || 0,
+      structure: parseInt(curTB.structureScore) || 0
+    };
+    const maxDim = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
+    const dimName = { hook: '钩子', emotion: '情绪', structure: '结构' };
+    isCorrect = guess === maxDim;
+    revealHtml = `
+      <div class="reveal-box result-pop">
+        <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">📊 揭晓答案</div>
+        <div style="background: var(--bg-inner); border-radius: 10px; padding: 12px; margin-bottom: 12px; font-size: 13px;">
+          <div style="color: var(--text-muted); margin-bottom: 8px;">你的判断：<span style="color: var(--cyan); font-weight: 500;">${dimName[guess]}主导</span></div>
+          <div style="display: flex; gap: 12px; margin-bottom: 8px;">
+            <div>🪝 钩子 ${curTB.hookScore || '—'}</div>
+            <div>💓 情绪 ${curTB.emotionScore || '—'}</div>
+            <div>🏗 结构 ${curTB.structureScore || '—'}</div>
+          </div>
+          <div style="color: ${isCorrect ? 'var(--green)' : 'var(--red)'}; font-weight: 500;">${isCorrect ? '✅ 正确！杀手锏维度就是「' + dimName[maxDim] + '」' : '❌ 实际杀手锏维度是「' + dimName[maxDim] + '」'}</div>
+        </div>
+        <div style="text-align: center;">
+          <button onclick="loadTrainB()" class="btn btn-accent btn-sm" style="margin-right: 8px;">🎲 下一条</button>
+          <button onclick="backToGuess('B')" class="btn btn-ghost btn-sm">↩ 返回重选</button>
+        </div>
+      </div>`;
+  }
+  addTraining(curTB.id, 'B', guess, isCorrect);
+  document.getElementById('tbReveal').innerHTML = revealHtml;
+  document.getElementById('tbReveal').style.display = 'block';
+  document.getElementById('tbGuess').style.display = 'none';
+  renderStats();
+}
+function skipTB() {
+  if (!curTB) return;
+  const drivers = curTB.drivers ? curTB.drivers.split(/[,，、]+/).map(s => s.trim()).filter(Boolean) : [];
+
+  if (drivers.length >= 3) {
+    document.getElementById('tbReveal').innerHTML = `
+      <div class="reveal-box fade-in">
+        <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">📖 答案揭晓</div>
+        <div style="background: var(--bg-inner); border-radius: 10px; padding: 12px; margin-bottom: 12px; font-size: 13px;">
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">TOP3：${drivers.slice(0,3).join(' > ')}</div>
+          <div style="color: var(--green); font-weight: 500;">核心驱动力：「${drivers[0]}」</div>
+        </div>
+        <div style="text-align: center;">
+          <button onclick="loadTrainB()" class="btn btn-accent btn-sm" style="margin-right: 8px;">🎲 下一条</button>
+          <button onclick="backToGuess('B')" class="btn btn-ghost btn-sm">↩ 返回重选</button>
+        </div>
+      </div>`;
+  } else {
+    const scores = {
+      hook: parseInt(curTB.hookScore) || 0,
+      emotion: parseInt(curTB.emotionScore) || 0,
+      structure: parseInt(curTB.structureScore) || 0
+    };
+    const maxDim = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
+    const dimName = { hook: '钩子', emotion: '情绪', structure: '结构' };
+    document.getElementById('tbReveal').innerHTML = `
+      <div class="reveal-box fade-in">
+        <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">📖 答案揭晓</div>
+        <div style="background: var(--bg-inner); border-radius: 10px; padding: 12px; margin-bottom: 12px; font-size: 13px;">
+          <div style="display: flex; gap: 12px; margin-bottom: 8px;">
+            <div>🪝 钩子 ${curTB.hookScore || '—'}</div>
+            <div>💓 情绪 ${curTB.emotionScore || '—'}</div>
+            <div>🏗 结构 ${curTB.structureScore || '—'}</div>
+          </div>
+          <div style="color: var(--green); font-weight: 500;">杀手锏维度：「${dimName[maxDim]}」主导</div>
+        </div>
+        <div style="text-align: center;">
+          <button onclick="loadTrainB()" class="btn btn-accent btn-sm" style="margin-right: 8px;">🎲 下一条</button>
+          <button onclick="backToGuess('B')" class="btn btn-ghost btn-sm">↩ 返回重选</button>
+        </div>
+      </div>`;
+  }
+  document.getElementById('tbReveal').style.display = 'block';
+  document.getElementById('tbGuess').style.display = 'none';
+}
+
+// ---- Train C: 评论预言 ----
+function loadTrainC() {
+  const filter = document.getElementById('trainFilter').value;
+  const search = document.getElementById('trainSearch').value.trim().toLowerCase();
+  let pool = getPool(filter);
+  if (search) {
+    pool = pool.filter(d =>
+      (d.title || '').toLowerCase().includes(search) ||
+      (d.content || '').toLowerCase().includes(search) ||
+      (d.tags || '').toLowerCase().includes(search)
+    );
+  }
+  if (!pool.length) {
+    document.getElementById('tcContent').innerHTML = trainEmpty('暂无匹配的案例<br><span style="font-size:11px;color:var(--text-muted);">试试换个搜索词，或清空搜索</span>');
+    document.getElementById('tcGuess').style.display = 'none';
+    document.getElementById('tcReveal').style.display = 'none';
+    return;
+  }
+  curTC = pool[Math.floor(Math.random() * pool.length)];
+  document.getElementById('tcContent').innerHTML = miniCard(curTC, true);
+  document.getElementById('tcGuess').style.display = 'block';
+  document.getElementById('tcReveal').style.display = 'none';
+  document.getElementById('tcInput').value = '';
+
+  // 渲染评论方向标签
+  const container = document.getElementById('tcTags');
+  if (curTC.comments) {
+    const tags = curTC.comments.split(/[,，、\n\r]+/).map(s => s.trim()).filter(s => s.length >= 2 && s.length <= 18).slice(0, 8);
+    container.innerHTML = tags.map(tag =>
+      `<span class="tag-btn" onclick="toggleCTag(this)" data-tag="${tag.replace(/"/g, '&quot;')}">${tag}</span>`
+    ).join('');
+  } else {
+    container.innerHTML = '<span style="font-size: 11px; color: var(--text-muted);">暂无 AI 评论方向线索，自由发挥 👇</span>';
+  }
+  document.querySelectorAll('#train-C .tag-btn').forEach(b => b.classList.remove('selected'));
+}
+function toggleCTag(btn) {
+  const tag = btn.dataset.tag;
+  const el = document.getElementById('tcInput');
+  const current = el.value.trim();
+  const sep = '、';
+  const parts = current ? current.split(/[,，、]+/).map(s => s.trim()).filter(Boolean) : [];
+  const idx = parts.indexOf(tag);
+  if (idx >= 0) {
+    parts.splice(idx, 1);
+    btn.classList.remove('selected');
+  } else {
+    parts.push(tag);
+    btn.classList.add('selected');
+  }
+  el.value = parts.join(sep);
+}
+function submitTC() {
+  const val = document.getElementById('tcInput').value.trim();
+  if (!val || !curTC) return;
+  addTraining(curTC.id, 'C', val);
+  document.getElementById('tcReveal').innerHTML = `
+    <div class="reveal-box result-pop">
+      <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">📊 揭晓答案</div>
+      <div style="background: var(--bg-inner); border-radius: 10px; padding: 12px; margin-bottom: 12px; font-size: 13px;">
+        <div style="color: var(--text-muted); margin-bottom: 4px;">你的预言：</div>
+        <div style="color: var(--text-body); background: var(--bg-card); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-default); margin-bottom: 10px;">${val}</div>
+        ${curTC.comments ? `<div style="color: var(--text-muted); margin-bottom: 4px;">参考答案（你之前录入的评论区洞察）：</div><div style="color: var(--green); background: var(--bg-card); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-default);">${curTC.comments}</div>` : '<div style="color: var(--text-muted);">（暂无参考答案，建议去「添加内容」补充评论区洞察）</div>'}
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button onclick="judgeTC(true)" class="btn btn-green" style="flex: 1;">✅ 预言命中</button>
+        <button onclick="judgeTC(false)" class="btn btn-red" style="flex: 1;">❌ 完全没中</button>
+      </div>
+      <button onclick="backToGuess('C')" class="btn btn-ghost btn-sm" style="width: 100%; margin-top: 10px; font-size: 12px; color: var(--text-muted);">↩ 返回重选</button>
+    </div>`;
+  document.getElementById('tcReveal').style.display = 'block';
+  document.getElementById('tcGuess').style.display = 'none';
+}
+function skipTC() {
+  if (!curTC) return;
+  document.getElementById('tcReveal').innerHTML = `
+    <div class="reveal-box result-pop">
+      <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">📖 参考答案</div>
+      <div style="background: var(--bg-inner); border-radius: 10px; padding: 12px; font-size: 13px;">
+        ${curTC.comments ? `<div style="color: var(--text-muted); margin-bottom: 4px;">评论区洞察：</div><div style="color: var(--green); background: var(--bg-card); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-default);">${curTC.comments}</div>` : '<div style="color: var(--text-muted);">（暂无参考答案，建议去「添加内容」补充评论区洞察）</div>'}
+      </div>
+      <div style="text-align: center; margin-top: 12px;">
+        <button onclick="loadTrainC()" class="btn btn-accent btn-sm" style="margin-right: 8px;">🎲 下一条</button>
+        <button onclick="backToGuess('C')" class="btn btn-ghost btn-sm">↩ 返回重选</button>
+      </div>
+    </div>`;
+  document.getElementById('tcReveal').style.display = 'block';
+  document.getElementById('tcGuess').style.display = 'none';
+}
+function judgeTC(ok) {
+  document.getElementById('tcReveal').innerHTML += '<div style="margin-top: 12px; text-align: center; color: var(--green); font-size: 13px;">✓ 已记录！1.5秒后换题 →</div>';
+  renderStats(); setTimeout(loadTrainC, 1500);
+}
+
+async function batchFillDrivers() {
+  const data = loadData();
+  const needFill = data.filter(d => !d.drivers && (d.content || d.title));
+  if (!needFill.length) { showToast('所有案例已有 drivers'); return; }
+  const cfg = getAiConfig();
+  if (!cfg.key) { showToast('请配置 API Key'); showAiConfigModal(); return; }
+
+  const batch = needFill.slice(0, 10);
+  showToast(`开始补全 ${batch.length} 条案例的 drivers...`);
+  let done = 0;
+  for (const item of batch) {
+    const text = `${item.title || ''}\n${item.content || ''}`.slice(0, 1500);
+    const prompt = `你是一位内容拆解专家。请基于以下内容，归纳出传播驱动力 TOP3（按重要性排序）。\n\n要求：\n1. 每个驱动力带 emoji，简洁有力，2-8个字\n2. 返回严格 JSON，不要任何其他文字\n\n{"drivers":["驱动力1","驱动力2","驱动力3"]}\n\n内容：\n${text}`;
+    try {
+      const resp = await fetch(cfg.baseUrl.replace(/\/$/, '') + '/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + cfg.key, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: cfg.model, messages: [{ role: 'user', content: prompt }], temperature: 0.5 })
+      });
+      if (!resp.ok) continue;
+      const result = await resp.json();
+      const raw = result.choices?.[0]?.message?.content || '';
+      let parsed;
+      try { parsed = JSON.parse(raw); }
+      catch {
+        const m = raw.match(/```json\s*([\s\S]*?)```/) || raw.match(/```\s*([\s\S]*?)```/);
+        if (m) parsed = JSON.parse(m[1]);
+      }
+      if (parsed?.drivers && Array.isArray(parsed.drivers) && parsed.drivers.length >= 3) {
+        item.drivers = parsed.drivers.slice(0, 5).join('、');
+        done++;
+      }
+    } catch (e) { console.log('补全失败', item.title, e.message); }
+    showToast(`已补全 ${done}/${batch.length}...`);
+  }
+  saveData(data);
+  invalidateTagCache();
+  renderLibrary();
+  showToast(`✅ 补全完成！${done}/${batch.length} 条案例已更新 drivers`);
+}
+
+function backToGuess(mode) {
+  if (mode === 'A') { document.getElementById('taReveal').style.display = 'none'; document.getElementById('taGuess').style.display = 'block'; }
+  if (mode === 'B') { document.getElementById('tbReveal').style.display = 'none'; document.getElementById('tbGuess').style.display = 'block'; }
+  if (mode === 'C') { document.getElementById('tcReveal').style.display = 'none'; document.getElementById('tcGuess').style.display = 'block'; }
+}
+
+function trainEmpty(msg) {
+  return `<div style="text-align: center; padding: 48px 20px;"><div style="font-size: 32px; margin-bottom: 12px; opacity: 0.6;">📭</div><div style="color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">${msg}</div><button onclick="switchTab('add')" class="btn btn-accent btn-sm" style="margin-top: 16px;">去添加内容</button></div>`;
+}
+
+function addTraining(caseId, mode, guess, correct) {
+  const data = loadData();
+  const item = data.find(d => d.id === caseId);
+  if (!item) return;
+  if (!item.training) item.training = [];
+  item.training.push({ mode, guess, correct: correct ?? null, time: new Date().toISOString() });
+  // 每个案例最多保留 20 条训练记录，防止数据无限膨胀
+  if (item.training.length > 20) {
+    item.training = item.training.slice(-20);
+  }
+  saveData(data);
+}
+
+function startTrainFromLib(id, mode) {
+  event.stopPropagation();
+  hideTrainModal();
+  switchTab('train');
+  switchTrainMode(mode);
+  if (mode === 'A') {
+    const item = loadData().find(d => d.id === id);
+    if (item) {
+      curTA = item;
+      document.getElementById('taContent').innerHTML = miniCard(curTA, true);
+      document.getElementById('taGuess').style.display = 'block';
+      document.getElementById('taReveal').style.display = 'none';
+      document.getElementById('taHook').value = '';
+      document.getElementById('taEmotion').value = '';
+      document.getElementById('taStructure').value = '';
+      renderTags();
+    }
+  }
+  if (mode === 'B') {
+    const item = loadData().find(d => d.id === id);
+    if (item) {
+      curTB = item; pickTBVal = null;
+      document.getElementById('tbContent').innerHTML = miniCard(curTB, true);
+      document.getElementById('tbGuess').style.display = 'block';
+      document.getElementById('tbReveal').style.display = 'none';
+      document.querySelectorAll('#train-B .range-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('btnTB').disabled = true;
+      // 重新为当前案例渲染选项
+      const drivers = curTB.drivers ? curTB.drivers.split(/[,，、]+/).map(s => s.trim()).filter(Boolean) : [];
+      if (drivers.length >= 3) {
+        document.getElementById('tbOptions').innerHTML = drivers.slice(0, 5).map((d, i) => {
+          const m = d.match(/^(\p{Emoji_Presentation}|\p{Emoji}️|\p{Extended_Pictographic})+\s*(.*)/u);
+          const emoji = m ? m[1] : '🔹';
+          const label = m ? m[2] : d;
+          return `<div class="range-btn" onclick="pickTB('${d.replace(/'/g, "\\'")}')" data-v="${d.replace(/"/g, '&quot;')}"><span class="emoji">${emoji}</span><span class="label">${label}</span></div>`;
+        }).join('');
+        document.getElementById('tbHints').innerHTML = '<div style="font-size: 11px; color: var(--text-muted);">🤖 AI 预计算的传播驱动力 TOP3，选出你认为最核心的</div>';
+      } else {
+        document.getElementById('tbOptions').innerHTML = `
+          <div class="range-btn" onclick="pickTB('hook')" data-v="hook"><span class="emoji">🪝</span><span class="label">钩子主导</span></div>
+          <div class="range-btn" onclick="pickTB('emotion')" data-v="emotion"><span class="emoji">💓</span><span class="label">情绪主导</span></div>
+          <div class="range-btn" onclick="pickTB('structure')" data-v="structure"><span class="emoji">🏗</span><span class="label">结构主导</span></div>`;
+        const hints = { hook: curTB.hook, emotion: curTB.emotion, structure: curTB.structure };
+        const dimMap = { hook: '🪝', emotion: '💓', structure: '🏗' };
+        const hintHtml = Object.entries(hints).map(([dim, text]) => {
+          if (!text) return '';
+          const tags = text.split(/[,，、\n\r]+/).map(s => s.trim()).filter(s => s.length >= 2 && s.length <= 18).slice(0, 3);
+          if (!tags.length) return '';
+          return `<div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">${dimMap[dim]} ${tags.map(t => `<span style="display:inline-block;padding:1px 6px;border-radius:10px;background:var(--bg-card-hover);border:1px solid var(--border-default);color:var(--text-muted);margin-right:4px;">${t}</span>`).join('')}</div>`;
+        }).filter(Boolean).join('');
+        document.getElementById('tbHints').innerHTML = hintHtml || '<div style="font-size: 11px; color: var(--text-muted);">暂无标签线索，凭直觉判断 👇</div>';
+      }
+    }
+  }
+  if (mode === 'C') {
+    const item = loadData().find(d => d.id === id);
+    if (item) {
+      curTC = item;
+      document.getElementById('tcContent').innerHTML = miniCard(curTC, true);
+      document.getElementById('tcGuess').style.display = 'block';
+      document.getElementById('tcReveal').style.display = 'none';
+      document.getElementById('tcInput').value = '';
+      // 重新为当前案例渲染评论方向标签
+      const container = document.getElementById('tcTags');
+      if (curTC.comments) {
+        const tags = curTC.comments.split(/[,，、\n\r]+/).map(s => s.trim()).filter(s => s.length >= 2 && s.length <= 18).slice(0, 8);
+        container.innerHTML = tags.map(tag =>
+          `<span class="tag-btn" onclick="toggleCTag(this)" data-tag="${tag.replace(/"/g, '&quot;')}">${tag}</span>`
+        ).join('');
+      } else {
+        container.innerHTML = '<span style="font-size: 11px; color: var(--text-muted);">暂无 AI 评论方向线索，自由发挥 👇</span>';
+      }
+      document.querySelectorAll('#train-C .tag-btn').forEach(b => b.classList.remove('selected'));
+    }
+  }
+}
+
+function showTrainModal(id) {
+  document.getElementById('trainModalContent').innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <button class="btn btn-accent" onclick="startTrainFromLib('${id}', 'A')">📝 A模式：拆解填空</button>
+      <button class="btn btn-accent" onclick="startTrainFromLib('${id}', 'B')">🎯 B模式：维度聚焦</button>
+      <button class="btn btn-accent" onclick="startTrainFromLib('${id}', 'C')">💬 C模式：评论预言</button>
+    </div>
+  `;
+  document.getElementById('trainModal').style.display = 'flex';
+}
+function hideTrainModal() { document.getElementById('trainModal').style.display = 'none'; }
+
+// ===================== Stats =====================
+function renderStats() {
+  const data = loadData();
+  const today = todayStr();
+  let todayCount = 0, todayCorrect = 0;
+  let totalCount = 0, totalCorrect = 0;
+  const byPf = {};
+  const byMode = { A: { t: 0, c: 0 }, B: { t: 0, c: 0 }, C: { t: 0, c: 0 } };
+
+  data.forEach(item => {
+    (item.training || []).forEach(t => {
+      if (t.correct === null) return;
+      const isToday = t.time && t.time.startsWith(today);
+      if (isToday) { todayCount++; if (t.correct) todayCorrect++; }
+      totalCount++; if (t.correct) totalCorrect++;
+
+      const pf = item.platform;
+      if (!byPf[pf]) byPf[pf] = { t: 0, c: 0 };
+      byPf[pf].t++; if (t.correct) byPf[pf].c++;
+
+      const m = t.mode;
+      if (byMode[m]) { byMode[m].t++; if (t.correct) byMode[m].c++; }
+    });
+  });
+
+  document.getElementById('stTodayTotal').textContent = todayCount;
+  const todayAcc = todayCount ? Math.round(todayCorrect / todayCount * 100) : 0;
+  document.getElementById('stTodayAcc').textContent = todayAcc + '%';
+  document.getElementById('stTotal').textContent = totalCount;
+  const overallAcc = totalCount ? Math.round(totalCorrect / totalCount * 100) : 0;
+  document.getElementById('stOverallAcc').textContent = overallAcc + '%';
+
+  // Status bar stats
+  const statusToday = document.getElementById('statusToday');
+  const statusAcc = document.getElementById('statusAcc');
+  if (statusToday) statusToday.textContent = todayCount;
+  if (statusAcc) statusAcc.textContent = todayAcc + '%';
+
+  // Today progress bar
+  const stTodaySub = document.getElementById('stTodaySub');
+  if (stTodaySub) {
+    if (todayCount === 0) stTodaySub.textContent = '今日尚未开始';
+    else if (todayCount < 5) stTodaySub.textContent = '🌱 起步阶段';
+    else if (todayCount < 15) stTodaySub.textContent = '⚡ 保持节奏';
+    else if (todayCount < 30) stTodaySub.textContent = '🔥 状态火热';
+    else stTodaySub.textContent = '🚀 火力全开';
+  }
+
+  // Platform radar + bars
+  const pfContainer = document.getElementById('platformBars');
+  const radarContainer = document.getElementById('radarChart');
+  const pfStats = document.getElementById('platformStats');
+  if (Object.keys(byPf).length) {
+    const radarPlatforms = ['weibo', 'zhihu', 'bilibili', 'xiaohongshu', 'douyin', 'wechat'];
+    const radarNames = { weibo: '微博', zhihu: '知乎', bilibili: 'B站', xiaohongshu: '小红书', douyin: '抖音', wechat: '公众号' };
+    const radarVals = radarPlatforms.map(pf => {
+      const s = byPf[pf];
+      return s && s.t ? Math.round(s.c / s.t * 100) : 0;
+    });
+    const cx = 100, cy = 100, maxR = 75;
+    const angles = radarPlatforms.map((_, i) => (Math.PI * 2 * i / 6) - Math.PI / 2);
+    const gridLevels = [0.33, 0.66, 1];
+    let gridPaths = '';
+    gridLevels.forEach(level => {
+      const pts = angles.map(a => {
+        const r = maxR * level;
+        return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`;
+      }).join(' ');
+      gridPaths += `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+    });
+    let axisLines = '';
+    angles.forEach(a => {
+      axisLines += `<line x1="${cx}" y1="${cy}" x2="${cx + maxR * Math.cos(a)}" y2="${cy + maxR * Math.sin(a)}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+    });
+    const dataPts = angles.map((a, i) => {
+      const r = maxR * (radarVals[i] / 100);
+      return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`;
+    }).join(' ');
+    let dots = '';
+    angles.forEach((a, i) => {
+      const r = maxR * (radarVals[i] / 100);
+      dots += `<circle cx="${cx + r * Math.cos(a)}" cy="${cy + r * Math.sin(a)}" r="3" fill="#6366f1" stroke="rgba(99,102,241,0.4)" stroke-width="2"/>`;
+    });
+    let labels = '';
+    angles.forEach((a, i) => {
+      const r = maxR + 14;
+      labels += `<text x="${cx + r * Math.cos(a)}" y="${cy + r * Math.sin(a)}" text-anchor="middle" dominant-baseline="middle" fill="#6e6e82" font-size="10" font-family="inherit">${radarNames[radarPlatforms[i]]}</text>`;
+    });
+    radarContainer.innerHTML = `<svg viewBox="0 0 200 200" style="width:100%;max-width:180px;">${gridPaths}${axisLines}<polygon points="${dataPts}" fill="rgba(99,102,241,0.12)" stroke="#6366f1" stroke-width="1.5"/>${dots}${labels}</svg>`;
+
+    const pfEntries = Object.entries(byPf).map(([pf, s]) => ({ pf, acc: s.t ? Math.round(s.c / s.t * 100) : 0, t: s.t }));
+    pfEntries.sort((a, b) => b.acc - a.acc);
+    pfContainer.innerHTML = pfEntries.map(({pf, acc, t}) => `
+      <div class="pf-radar-row">
+        <div class="pf-radar-label">
+          <span class="pf-radar-name">${pfName[pf] || pf}</span>
+          <span class="pf-radar-val">${acc}%</span>
+        </div>
+        <div class="pf-radar-bar-bg"><div class="pf-radar-bar-fill" style="width: ${acc}%;"></div></div>
+      </div>`).join('');
+    pfStats.style.display = 'block';
+  } else pfStats.style.display = 'none';
+
+  // Mode bars
+  const modeContainer = document.getElementById('modeBars');
+  const modeStats = document.getElementById('modeStats');
+  const modeLabels = { A: '拆解填空', B: '维度聚焦', C: '评论预言' };
+  const modeColors = { A: '#6a9fff', B: '#fcd34d', C: '#6ee7b7' };
+  const hasModeData = Object.values(byMode).some(s => s.t > 0);
+  if (hasModeData) {
+    modeContainer.innerHTML = Object.entries(byMode).map(([m, s]) => {
+      const acc = s.t ? Math.round(s.c / s.t * 100) : 0;
+      return `
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+            <span style="color: var(--text-primary);">${modeLabels[m]}</span>
+            <span style="color: var(--text-muted);">${acc}% <span style="font-size: 10px;">(${s.c}/${s.t})</span></span>
+          </div>
+          <div class="stat-bar-bg"><div class="stat-bar-fill" style="width: ${acc}%;"></div></div>
+        </div>`;
+    }).join('');
+    modeStats.style.display = 'block';
+  } else modeStats.style.display = 'none';
+
+  // Recent records
+  const records = [];
+  data.forEach(item => {
+    (item.training || []).forEach(t => {
+      records.push({ ...t, title: item.title, platform: item.platform });
+    });
+  });
+  records.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+  const recContainer = document.getElementById('statsRecords');
+  if (!records.length) {
+    recContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 20px;">暂无训练记录</div>';
+  } else {
+    recContainer.innerHTML = records.slice(0, 15).map(r => {
+      const modeLabels = { A: '拆解填空', B: '维度聚焦', C: '评论预言' };
+      const status = r.correct === null ? '—' : r.correct ? '<span style="color:var(--green);">✓</span>' : '<span style="color:var(--red);">✗</span>';
+      return `
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg-inner); border-radius: var(--radius); border: 1px solid var(--border-default);">
+          <span style="font-weight: 600; width: 16px; text-align: center;">${status}</span>
+          <span style="color: var(--text-muted); width: 60px; font-size: 11px;">${modeLabels[r.mode] || r.mode}</span>
+          <span style="color: var(--text-primary); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${r.title}</span>
+          <span style="color: var(--text-muted); font-size: 11px;">${r.guess.slice(0, 20)}${r.guess.length > 20 ? '...' : ''}</span>
+        </div>`;
+    }).join('');
+  }
+}
+
+// ===================== Import / Export =====================
+function showImport() { document.getElementById('importModal').style.display = 'flex'; }
+function hideImport() { document.getElementById('importModal').style.display = 'none'; }
+function doImport() {
+  try {
+    const raw = document.getElementById('importArea').value.trim();
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (Array.isArray(data)) {
+      const current = loadData();
+      current.push(...data);
+      saveData(current);
+      showToast(`导入了 ${data.length} 条案例`);
+    } else if (data.pool || data.records) {
+      const pool = data.pool || [];
+      const mapped = pool.map(p => ({
+        id: p.id || uid(), platform: p.platform, url: p.url, title: p.title,
+        tags: '', hookScore: '', emotionScore: '', structureScore: '', predScore: '', predReason: '',
+        hook: '', emotion: '', structure: '', comments: '', actual: '', accuracy: '',
+        training: [], created: p.added || new Date().toISOString()
+      }));
+      const current = loadData();
+      current.push(...mapped);
+      saveData(current);
+      showToast(`导入了 ${mapped.length} 条案例`);
+    }
+    hideImport();
+    renderLibrary();
+    renderStats();
+  } catch (e) { showToast('导入失败：JSON格式错误'); }
+}
+function exportData() {
+  const blob = new Blob([JSON.stringify(loadData(), null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `网感训练板_${todayStr()}.json`;
+  a.click();
+}
+
+// ===================== Bookmarklet =====================
+function showBookmarklet() {
+  const code = `javascript:(function(){var t=document.title.replace(/[-_–—].*$/,'').trim();var u=location.href;var pf='custom';if(/weibo/.test(u))pf='weibo';else if(/zhihu/.test(u))pf='zhihu';else if(/bilibili/.test(u))pf='bilibili';else if(/xiaohongshu|xhslink/.test(u))pf='xiaohongshu';else if(/douyin/.test(u))pf='douyin';else if(/kuaishou/.test(u))pf='kuaishou';else if(/weixin\.qq\.com/.test(u))pf='wechat';else if(/toutiao|ixigua/.test(u))pf='toutiao';else if(/tieba/.test(u))pf='tieba';else if(/douban/.test(u))pf='douban';else if(/hupu/.test(u))pf='hupu';else if(/jianshu/.test(u))pf='jianshu';else if(/juejin/.test(u))pf='juejin';else if(/csdn/.test(u))pf='csdn';else if(/acfun/.test(u))pf='acfun';else if(/jike/.test(u))pf='jike';else if(/163\.com|126\.com|netease/.test(u))pf='netease';else if(/sohu/.test(u))pf='sohu';else if(/news\.qq\.com/.test(u))pf='qqnews';else if(/36kr/.test(u))pf='36kr';else if(/sspai/.test(u))pf='sspai';var c='';try{var el=document.querySelector('article')||document.querySelector('main')||document.querySelector('.post-content')||document.querySelector('.content')||document.querySelector('#content');if(el)c=el.innerText;else c=document.body.innerText}catch(e){}c=c.replace(/\\s+/g,' ').trim().slice(0,2000);var payload=JSON.stringify({title:t,url:u,platform:pf,content:c});var ok=false;try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(payload).then(function(){alert('📋 已复制到剪贴板！回到训练板点「粘贴导入」即可')});ok=true}}catch(e){}if(!ok){prompt('📋 请复制以下内容，回到训练板点「粘贴导入」:',payload)}})();`;
+  document.getElementById('bkmkLink').href = code;
+  document.getElementById('bkmkCode').value = code;
+  document.getElementById('bookmarkletModal').style.display = 'flex';
+}
+function hideBookmarklet() { document.getElementById('bookmarkletModal').style.display = 'none'; }
+
+// Close modals on overlay click
+['ruleModal', 'importModal', 'bookmarkletModal', 'aiConfigModal', 'trainModal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) { if (e.target === this) this.style.display = 'none'; });
+});
+
+// ===================== Seed =====================
+(function seed() {
+  if (loadData().length === 0) {
+    saveData([
+      {
+        id: uid(), platform: 'weibo', url: '', title: '一车安全带全是P上去的',
+        tags: '娱乐 吐槽 反常识',
+        hookScore: '9', emotionScore: '8', structureScore: '7', predScore: '8', predReason: '反常识钩子极强，反差感制造传播',
+        hook: 'P图 vs 安全这种严肃话题的荒诞组合，让人忍不住点进去验证',
+        emotion: '荒诞感 + 愤怒（被欺骗）+ 猎奇',
+        structure: '图片悬念 → 文字吐槽 → 评论区二次创作',
+        comments: '我也发现了 / 这种图居然能过审 / 求原图',
+        actual: '', accuracy: '', training: [], created: new Date().toISOString()
+      },
+      {
+        id: uid(), platform: 'xiaohongshu', url: '', title: '特种兵旅游之48小时吃遍重庆',
+        tags: '旅游 特种兵 攻略 美食',
+        hookScore: '8', emotionScore: '9', structureScore: '7', predScore: '8', predReason: '情绪价值高 + 实用性强 + 反常识时间',
+        hook: '"48小时"数字钩子制造紧迫感，"吃遍"承诺明确利益',
+        emotion: '羡慕 + 冲动（我也想去）+ FOMO焦虑',
+        structure: 'Day1→Day2时间线，每顿配图片+价格，结尾总花费',
+        comments: '求攻略链接 / 本地人认证 / 马克了下次去 / 这也太赶了',
+        actual: '8', accuracy: 'hit', training: [], created: new Date(Date.now()-2*24*60*60*1000).toISOString()
+      }
+    ]);
+  }
+  initAiConfig();
+})();
+
+// Init
+function initTabIndicator() {
+  const tabs = document.getElementById('tabs');
+  const indicator = document.getElementById('tabIndicator');
+  const activeBtn = document.querySelector('.tab-btn.active');
+  if (tabs && indicator && activeBtn) {
+    const tabRect = activeBtn.getBoundingClientRect();
+    const tabsRect = tabs.getBoundingClientRect();
+    indicator.style.left = (tabRect.left - tabsRect.left + tabs.scrollLeft) + 'px';
+    indicator.style.width = tabRect.width + 'px';
+  }
+}
+
+window.addEventListener('resize', initTabIndicator);
+window.addEventListener('load', () => {
+  switchTab('add');
+  initTabIndicator();
+  renderStats();
+});
+</script>
+</body>
+</html>
