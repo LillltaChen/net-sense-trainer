@@ -22,18 +22,20 @@
 **核心逻辑：拆解 → 预测 → 验证 → 校准。把"感觉"变成可追踪的数据。**
 
 <p align="center">
-  <img src="./images/case-01.png" width="30%" alt="AI 解析配置" />
-  <img src="./images/case-02.png" width="30%" alt="添加内容" />
-  <img src="./images/case-03.png" width="30%" alt="拆解分析" />
+  <img src="./images/case-01.png" width="48%" alt="AI 解析配置" />
+  <img src="./images/case-02.png" width="48%" alt="添加内容" />
 </p>
 <p align="center">
-  <img src="./images/case-04.png" width="30%" alt="案例库" />
-  <img src="./images/case-05.png" width="30%" alt="训练中心 - 拆解填空" />
-  <img src="./images/case-06.png" width="30%" alt="训练中心 - 维度聚焦" />
+  <img src="./images/case-03.png" width="48%" alt="拆解分析" />
+  <img src="./images/case-04.png" width="48%" alt="案例库" />
 </p>
 <p align="center">
-  <img src="./images/case-07.png" width="30%" alt="训练中心 - 评论预言" />
-  <img src="./images/case-08.png" width="30%" alt="统计面板" />
+  <img src="./images/case-05.png" width="48%" alt="训练中心 - 拆解填空" />
+  <img src="./images/case-06.png" width="48%" alt="训练中心 - 维度聚焦" />
+</p>
+<p align="center">
+  <img src="./images/case-07.png" width="48%" alt="训练中心 - 评论预言" />
+  <img src="./images/case-08.png" width="48%" alt="统计面板" />
 </p>
 
 ---
