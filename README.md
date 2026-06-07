@@ -1,4 +1,4 @@
-# ✨ 网感训练板 / Internet-Vibe Trainer
+ # ✨ 网感训练板 / net-sense-trainer
 
 > 把网感从玄学变成可训练的能力
 
@@ -6,10 +6,12 @@
   <img src="social-preview.png" width="200" alt="网感训练板">
 </p>
 
-![Platforms](https://img.shields.io/badge/Platforms-22_中国平台-6366f1)
-![HTML](https://img.shields.io/badge/HTML-单文件零构建-orange)
-![Storage](https://img.shields.io/badge/Storage-localhost-22c55e)
-![License](https://img.shields.io/badge/License-MIT-blue)
+<p align="center">
+  <img src="https://img.shields.io/badge/Platforms-22_中国平台-6366f1" alt="Platforms">
+  <img src="https://img.shields.io/badge/HTML-单文件零构建-orange" alt="HTML">
+  <img src="https://img.shields.io/badge/Storage-localhost-22c55e" alt="Storage">
+  <img src="https://img.shields.io/badge/License-MIT-blue" alt="License">
+</p>
 
 ---
 
@@ -18,6 +20,16 @@
 「网感训练板」是一个面向内容创作者的刻意练习工具。每次刷到爆款，不再是"觉得不错"然后划走——而是用统一的三维度框架拆解它，用 AI 六步法给它打分，然后拿真实数据来验证你的判断。
 
 **核心逻辑：拆解 → 预测 → 验证 → 校准。把"感觉"变成可追踪的数据。**
+
+<p align="center">
+  <img src="./images/case-01.png" width="30%" alt="案例图解1" />
+  <img src="./images/case-02.png" width="30%" alt="案例图解2" />
+  <img src="./images/case-03.png" width="30%" alt="案例图解3" />
+</p>
+<p align="center">
+  <img src="./images/case-04.png" width="30%" alt="案例图解4" />
+  <img src="./images/case-05.png" width="30%" alt="案例图解5" />
+</p>
 
 ---
 
